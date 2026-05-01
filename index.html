@@ -52,6 +52,7 @@ body{background:#1a1f2b;font-family:'Segoe UI',Arial,sans-serif;color:#e0e0e0;mi
   background:#3a1a1a;border:1px solid #5a2a2a;
   color:#d88a8a;padding:10px;border-radius:4px;
   margin-bottom:15px;font-size:13px;text-align:center;
+  display:none;
 }
 
 /* ========== ШАПКА ========== */
@@ -429,13 +430,12 @@ table.full .chk-col input[type="checkbox"]{width:16px;height:16px;cursor:pointer
 
 <body>
 
-<!-- ===== АВТОРИЗАЦИЯ (ПЕРВОЕ, ЧТО ВИДИТ ПОЛЬЗОВАТЕЛЬ) ===== -->
+<!-- ===== АВТОРИЗАЦИЯ ===== -->
 <div class="auth-overlay" id="authOverlay">
   <div class="auth-card">
     <h2>🔐 Доступ к системе</h2>
-    <div id="authError" class="auth-error" style="display:none;"></div>
+    <div id="authError" class="auth-error"></div>
     
-    <!-- Форма входа -->
     <form class="auth-form" id="loginForm">
       <input type="text" id="loginUsername" placeholder="Имя пользователя" required>
       <input type="password" id="loginPassword" placeholder="Пароль" required>
@@ -445,7 +445,6 @@ table.full .chk-col input[type="checkbox"]{width:16px;height:16px;cursor:pointer
       </div>
     </form>
     
-    <!-- Форма регистрации (скрыта по умолчанию) -->
     <form class="auth-form" id="registerForm" style="display:none;">
       <input type="text" id="regUsername" placeholder="Придумайте имя пользователя" required minlength="3">
       <input type="password" id="regPassword" placeholder="Придумайте пароль" required minlength="6">
@@ -500,7 +499,6 @@ table.full .chk-col input[type="checkbox"]{width:16px;height:16px;cursor:pointer
       <p id="mainMessage">Единая информационная система управления кадровым составом Вооружённых сил Региональной Федерации.</p>
     </div>
     
-    <!-- Сообщение для гражданских -->
     <div id="civilianNotice" class="access-denied" style="display:none;">
       <h3>⚠ Доступ ограничен</h3>
       <p>Вы не гос. служащий, чтоб просматривать информацию какую-либо</p>
@@ -588,8 +586,8 @@ table.full .chk-col input[type="checkbox"]{width:16px;height:16px;cursor:pointer
 
 <script>
 /* 🔗 ВСТАВЬ СВОИ ДАННЫЕ ИЗ SUPABASE */
-const SUPABASE_URL = 'https://ТВОЙ_ПРОЕКТ.supabase.co';
-const SUPABASE_ANON_KEY = 'ТВОЙ_PUBLISHABLE_KEY';
+const SUPABASE_URL = 'https://tyuwwumiufltpixqszmk.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_-Nf3QGYuHcF3oTmx4B1qOw_VnHNjoZ-';
 
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -599,7 +597,7 @@ let cases = [];
 let diplomas = [];
 let users = [];
 
-// ========== РОЛИ И ПРАВА (ОБНОВЛЕНО!) ==========
+// ========== РОЛИ И ПРАВА ==========
 const ROLES = {
   'Гражданский': { cases: { view: false, create: false, edit: false, delete: false }, diplomas: { view: false, create: false, edit: false, delete: false }, admin: false },
   'ВП': { cases: { view: true, create: false, edit: true, delete: false }, diplomas: { view: true, create: false, edit: false, delete: false }, admin: false },
@@ -616,7 +614,7 @@ const ADMIN_CREDS = {
 };
 
 // ========== ИНИЦИАЛИЗАЦИЯ ==========
-document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', () => {
   initAuth();
   initDate();
   checkAuth();
@@ -655,23 +653,38 @@ async function handleLogin(e){
   const username = document.getElementById('loginUsername').value.trim();
   const password = document.getElementById('loginPassword').value;
   
-  // Проверка админа
+  // 1. Проверка админа
   if(username === ADMIN_CREDS.username && password === ADMIN_CREDS.password){
-    currentUser = { id: 'admin', username: username, role: 'Модер' };
+    currentUser = { 
+      id: 'admin', 
+      username: ADMIN_CREDS.username, 
+      role: 'Модер',
+      password: ADMIN_CREDS.password
+    };
     completeLogin();
     return;
   }
   
-  // Проверка в базе
-  const {  usersData, error } = await supabase.from('users').select('*').eq('username', username).eq('password', password).single();
-  
-  if(error || !usersData){
-    showError('Неверное имя пользователя или пароль');
-    return;
+  // 2. Проверка в БД
+  try {
+    const {  data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('username', username)
+      .eq('password', password)
+      .single();
+    
+    if(error || !data){
+      showError('Неверное имя пользователя или пароль');
+      return;
+    }
+    
+    currentUser = data;
+    completeLogin();
+  } catch(err){
+    console.error(err);
+    showError('Ошибка подключения к базе');
   }
-  
-  currentUser = usersData;
-  completeLogin();
 }
 
 async function handleRegister(e){
@@ -680,63 +693,51 @@ async function handleRegister(e){
   const password = document.getElementById('regPassword').value;
   const confirm = document.getElementById('regConfirm').value;
   
-  if(password !== confirm){
-    showError('Пароли не совпадают');
-    return;
-  }
-  if(username.length < 3){
-    showError('Имя пользователя должно быть не менее 3 символов');
-    return;
-  }
-  if(password.length < 6){
-    showError('Пароль должен быть не менее 6 символов');
-    return;
-  }
+  if(password !== confirm){ showError('Пароли не совпадают'); return; }
+  if(username.length < 3){ showError('Имя пользователя должно быть не менее 3 символов'); return; }
+  if(password.length < 6){ showError('Пароль должен быть не менее 6 символов'); return; }
   
-  // Проверка на существование
   const {  existing } = await supabase.from('users').select('id').eq('username', username).single();
-  if(existing){
-    showError('Пользователь с таким именем уже существует');
-    return;
-  }
+  if(existing){ showError('Пользователь с таким именем уже существует'); return; }
   
-  // Создание пользователя
-  const newUser = {
-    id: 'user_' + Date.now(),
-    username: username,
-    password: password,
-    role: 'Гражданский'
-  };
-  
+  const newUser = { id: 'user_' + Date.now(), username, password, role: 'Гражданский' };
   const { error } = await supabase.from('users').insert([newUser]);
-  if(error){
-    showError('Ошибка регистрации: ' + error.message);
-    return;
-  }
+  if(error){ showError('Ошибка регистрации: ' + error.message); return; }
   
   currentUser = newUser;
   completeLogin();
 }
 
 function completeLogin(){
+  // Скрываем оверлей
   document.getElementById('authOverlay').classList.add('hidden');
+  
+  // Обновляем инфо в шапке
   document.getElementById('infoUser').textContent = currentUser.username;
   document.getElementById('infoRole').textContent = currentUser.role;
   document.getElementById('userDisplay').textContent = currentUser.username;
   
+  // Сохраняем в localStorage (без пароля)
+  const safeUser = { id: currentUser.id, username: currentUser.username, role: currentUser.role };
+  localStorage.setItem('mil_user', JSON.stringify(safeUser));
+  
+  // Применяем права доступа
   updateUIByRole();
+  
+  // Загружаем данные
   loadData();
 }
 
 function logout(){
   currentUser = null;
+  localStorage.removeItem('mil_user');
+  
   document.getElementById('authOverlay').classList.remove('hidden');
   document.getElementById('loginUsername').value = '';
   document.getElementById('loginPassword').value = '';
   showLogin();
   hideError();
   
-  // Скрыть контент
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.getElementById('sec-main').classList.add('active');
   document.querySelectorAll('.mil-nav-btn').forEach(b => b.classList.remove('active'));
@@ -746,8 +747,16 @@ function logout(){
 function checkAuth(){
   const saved = localStorage.getItem('mil_user');
   if(saved){
-    currentUser = JSON.parse(saved);
-    completeLogin();
+    try {
+      currentUser = JSON.parse(saved);
+      // Для админа восстанавливаем полный объект
+      if(currentUser.username === ADMIN_CREDS.username){
+        currentUser.password = ADMIN_CREDS.password;
+      }
+      completeLogin();
+    } catch(e){
+      localStorage.removeItem('mil_user');
+    }
   }
 }
 
@@ -756,12 +765,12 @@ function updateUIByRole(){
   if(!currentUser) return;
   const perms = ROLES[currentUser.role] || ROLES['Гражданский'];
   
-  // Скрыть/показать навигацию
+  // Навигация
   document.getElementById('navLd').style.display = perms.cases.view ? '' : 'none';
   document.getElementById('navDip').style.display = perms.diplomas.view ? '' : 'none';
   document.getElementById('navAdmin').style.display = perms.admin ? '' : 'none';
   
-  // Скрыть/показать дашборд
+  // Дашборд
   document.getElementById('dashLd').style.display = perms.cases.view ? '' : 'none';
   document.getElementById('dashDip').style.display = perms.diplomas.view ? '' : 'none';
   
@@ -775,7 +784,7 @@ function updateUIByRole(){
   // Кнопки в дипломах
   document.getElementById('btnCreateDip').style.display = perms.diplomas.create ? '' : 'none';
   
-  // Загрузить список пользователей для админа
+  // Админка
   if(perms.admin) loadAdminUsers();
 }
 
