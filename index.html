@@ -6,19 +6,58 @@
 
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
+body{background:#1a1f2b;font-family:'Segoe UI',Arial,sans-serif;color:#e0e0e0;min-height:100vh;}
 
-body{
-  background:#1a1f2b;
-  font-family:'Segoe UI',Arial,sans-serif;
-  color:#e0e0e0;
-  min-height:100vh;
+/* ========== АВТОРИЗАЦИЯ ========== */
+.auth-overlay{
+  position:fixed;top:0;left:0;width:100%;height:100%;
+  background:linear-gradient(135deg,#0a0f08 0%,#1a1f2b 50%,#0a0f08 100%);
+  display:flex;align-items:center;justify-content:center;
+  z-index:9999;
+}
+.auth-overlay.hidden{display:none;}
+
+.auth-card{
+  background:linear-gradient(145deg,#1e2b1c,#243222);
+  border:2px solid #8b7d3c;border-radius:12px;
+  padding:30px;width:100%;max-width:420px;
+  box-shadow:0 20px 60px rgba(0,0,0,.5);
+}
+.auth-card h2{
+  color:#d4af37;font-size:20px;text-align:center;
+  margin-bottom:20px;text-transform:uppercase;letter-spacing:2px;
+}
+.auth-form input{
+  width:100%;padding:12px 15px;margin-bottom:12px;
+  background:#1a2818;border:1px solid #2a3a28;
+  border-radius:4px;color:#e0e0e0;font-size:14px;
+  font-family:inherit;
+}
+.auth-form input:focus{outline:none;border-color:#8b7d3c;}
+.auth-form .btn{
+  width:100%;padding:12px;margin-top:8px;
+  font-size:14px;font-weight:600;
+}
+.auth-form .btn-secondary{
+  background:transparent;border:1px solid #8b7d3c;
+  color:#8b7d3c;
+}
+.auth-form .btn-secondary:hover{background:rgba(139,125,60,.1);}
+.auth-toggle{
+  text-align:center;margin-top:15px;font-size:13px;color:#6a7a5e;
+}
+.auth-toggle a{color:#d4af37;cursor:pointer;text-decoration:none;}
+.auth-toggle a:hover{text-decoration:underline;}
+.auth-error{
+  background:#3a1a1a;border:1px solid #5a2a2a;
+  color:#d88a8a;padding:10px;border-radius:4px;
+  margin-bottom:15px;font-size:13px;text-align:center;
 }
 
 /* ========== ШАПКА ========== */
 .mil-header{
   background:linear-gradient(180deg,#2c3e2a 0%,#1e2e1c 100%);
-  border-bottom:3px solid #8b7d3c;
-  padding:0;
+  border-bottom:3px solid #8b7d3c;padding:0;
 }
 .mil-header-inner{
   max-width:1300px;margin:auto;
@@ -120,6 +159,14 @@ body{
 .welcome-banner h2{color:#d4af37;font-size:20px;margin-bottom:6px;}
 .welcome-banner p{color:#8a9a7e;font-size:13px;line-height:1.6;}
 
+.access-denied{
+  background:linear-gradient(135deg,#2a1a1a,#3a2a2a);
+  border:2px solid #5a2a2a;border-radius:8px;
+  padding:30px;text-align:center;margin:20px 0;
+}
+.access-denied h3{color:#d88a8a;font-size:18px;margin-bottom:10px;}
+.access-denied p{color:#8a6a6a;font-size:14px;}
+
 .info-bar{display:flex;gap:15px;margin-bottom:25px;flex-wrap:wrap;}
 .info-chip{
   background:#1a2818;border:1px solid #2a3a28;
@@ -147,12 +194,9 @@ body{
   cursor:pointer;font-size:12px;font-weight:600;
   font-family:inherit;transition:all .2s;white-space:nowrap;
 }
-.btn-open{background:#2a5a28;color:#a0d89a;}
-.btn-open:hover{background:#3a7a38;}
-.btn-edit{background:#3a3a1a;color:#d4af37;}
-.btn-edit:hover{background:#4a4a2a;}
-.btn-del{background:#3a1a1a;color:#d88a8a;}
-.btn-del:hover{background:#5a2a2a;}
+.btn-open{background:#2a5a28;color:#a0d89a;}.btn-open:hover{background:#3a7a38;}
+.btn-edit{background:#3a3a1a;color:#d4af37;}.btn-edit:hover{background:#4a4a2a;}
+.btn-del{background:#3a1a1a;color:#d88a8a;}.btn-del:hover{background:#5a2a2a;}
 .btn-create{
   background:linear-gradient(135deg,#2a5a28,#3a7a38);
   color:#fff;padding:12px 24px;font-size:14px;
@@ -173,10 +217,8 @@ body{
   font-weight:700;font-family:inherit;
 }
 .btn-save:hover{background:linear-gradient(135deg,#d4af37,#e8c84a);}
-.btn-print{background:#1a3a5a;color:#a0c8e8;}
-.btn-print:hover{background:#2a4a6a;}
-.btn-view{background:#3a2a1a;color:#d4af37;border:1px solid #5a4a2a;}
-.btn-view:hover{background:#4a3a2a;}
+.btn-print{background:#1a3a5a;color:#a0c8e8;}.btn-print:hover{background:#2a4a6a;}
+.btn-view{background:#3a2a1a;color:#d4af37;border:1px solid #5a4a2a;}.btn-view:hover{background:#4a3a2a;}
 
 .ld-toolbar{display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap;}
 .ld-toolbar input, .ld-toolbar select{
@@ -185,8 +227,7 @@ body{
   font-family:inherit;
 }
 .ld-toolbar input:focus, .ld-toolbar select:focus{outline:none;border-color:#4a6a3a;}
-.ld-toolbar input{width:250px;}
-.ld-toolbar select{min-width:200px;}
+.ld-toolbar input{width:250px;}.ld-toolbar select{min-width:200px;}
 
 /* ========== A4 СТРАНИЦЫ ========== */
 .page{
@@ -256,8 +297,7 @@ table.full .chk-col input[type="checkbox"]{width:16px;height:16px;cursor:pointer
   font-family:inherit;
 }
 .diploma-filters input:focus, .diploma-filters select:focus{outline:none;border-color:#4a6a3a;}
-.diploma-filters input{width:200px;}
-.diploma-filters select{min-width:180px;}
+.diploma-filters input{width:200px;}.diploma-filters select{min-width:180px;}
 
 .diploma-type-section{margin:25px 0;}
 .diploma-type-section h3{
@@ -265,9 +305,7 @@ table.full .chk-col input[type="checkbox"]{width:16px;height:16px;cursor:pointer
   padding-bottom:6px;border-bottom:1px solid #2a3a28;
   display:flex;align-items:center;gap:8px;
 }
-.diploma-type-section h3::before{
-  content:'📁';font-size:14px;
-}
+.diploma-type-section h3::before{content:'📁';font-size:14px;}
 
 .diploma-grid{
   display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
@@ -289,7 +327,7 @@ table.full .chk-col input[type="checkbox"]{width:16px;height:16px;cursor:pointer
 }
 .diploma-empty .icon{font-size:48px;margin-bottom:15px;display:block;}
 
-/* ========== СТИЛИ ДИПЛОМА (форма заполнения) ========== */
+/* ========== СТИЛИ ДИПЛОМА ========== */
 .page-wrapper{
   display:flex;justify-content:center;
   padding:15px 0;background:transparent;
@@ -305,8 +343,7 @@ table.full .chk-col input[type="checkbox"]{width:16px;height:16px;cursor:pointer
   background:rgba(212,175,55,0.08);border:none;
   border-bottom:1px dashed rgba(139,125,60,0.3);
   font-family:'Times New Roman',serif;font-size:1.8cqw;
-  color:#1a1a1a;padding:0 4px;
-  text-align: left;
+  color:#1a1a1a;padding:0 4px;text-align: left;
 }
 .diploma-input:focus{
   outline:none;background:rgba(212,175,55,0.15);
@@ -327,11 +364,34 @@ table.full .chk-col input[type="checkbox"]{width:16px;height:16px;cursor:pointer
 }
 .db-status.online{background:#1a3a1a;color:#7cb87a;}
 .db-status.offline{background:#3a1a1a;color:#d88a8a;}
-.db-status-dot{
-  width:8px;height:8px;border-radius:50%;
-}
+.db-status-dot{width:8px;height:8px;border-radius:50%;}
 .db-status.online .db-status-dot{background:#7cb87a;box-shadow:0 0 6px #7cb87a;}
 .db-status.offline .db-status-dot{background:#d88a8a;}
+
+/* ========== АДМИН ПАНЕЛЬ ========== */
+.admin-panel{
+  background:linear-gradient(145deg,#2a1a2a,#3a2a3a);
+  border:1px solid #5a3a5a;border-radius:8px;
+  padding:20px;margin-bottom:20px;
+}
+.admin-panel h3{color:#d4af37;margin-bottom:15px;font-size:16px;}
+.admin-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;}
+.admin-form input,.admin-form select{
+  padding:10px;background:#1a2818;border:1px solid #2a3a28;
+  border-radius:4px;color:#e0e0e0;font-size:14px;font-family:inherit;
+}
+.admin-form input:focus,.admin-form select:focus{outline:none;border-color:#8b7d3c;}
+.admin-users-list{margin-top:15px;}
+.admin-user-item{
+  display:flex;align-items:center;gap:10px;
+  padding:10px;background:#1e2b1c;border-radius:4px;
+  margin-bottom:8px;flex-wrap:wrap;
+}
+.admin-user-item b{flex:1;min-width:150px;color:#c8d4b8;}
+.admin-user-item .role-badge{
+  padding:3px 10px;background:#2a3a28;
+  border-radius:3px;font-size:11px;color:#8b7d3c;
+}
 
 @media (max-width:1100px){.diploma-container{transform:scale(0.85);transform-origin:top center;}}
 @media (max-width:768px){.diploma-container{transform:scale(0.65);}}
@@ -349,7 +409,8 @@ table.full .chk-col input[type="checkbox"]{width:16px;height:16px;cursor:pointer
   .mil-header,.gold-strip,.mil-nav,.mil-footer,
   .ld-toolbar,.welcome-banner,.dashboard,.info-bar,
   .section:not(.active),.diplomas-header,.diploma-filters,
-  .diploma-grid,.diploma-card,.diploma-type-section,.db-status{display:none!important;}
+  .diploma-grid,.diploma-card,.diploma-type-section,.db-status,
+  .auth-overlay,.admin-panel{display:none!important;}
   .section.active > *:not(.page):not(.page-flex):not(.diploma-container){display:none!important;}
   .page,.page-flex{margin:0;box-shadow:none;page-break-after:always;}
   .diploma-container{
@@ -368,6 +429,35 @@ table.full .chk-col input[type="checkbox"]{width:16px;height:16px;cursor:pointer
 
 <body>
 
+<!-- ===== АВТОРИЗАЦИЯ (ПЕРВОЕ, ЧТО ВИДИТ ПОЛЬЗОВАТЕЛЬ) ===== -->
+<div class="auth-overlay" id="authOverlay">
+  <div class="auth-card">
+    <h2>🔐 Доступ к системе</h2>
+    <div id="authError" class="auth-error" style="display:none;"></div>
+    
+    <!-- Форма входа -->
+    <form class="auth-form" id="loginForm">
+      <input type="text" id="loginUsername" placeholder="Имя пользователя" required>
+      <input type="password" id="loginPassword" placeholder="Пароль" required>
+      <button type="submit" class="btn btn-create">Войти</button>
+      <div class="auth-toggle">
+        Нет аккаунта? <a onclick="showRegister()">Зарегистрироваться</a>
+      </div>
+    </form>
+    
+    <!-- Форма регистрации (скрыта по умолчанию) -->
+    <form class="auth-form" id="registerForm" style="display:none;">
+      <input type="text" id="regUsername" placeholder="Придумайте имя пользователя" required minlength="3">
+      <input type="password" id="regPassword" placeholder="Придумайте пароль" required minlength="6">
+      <input type="password" id="regConfirm" placeholder="Подтвердите пароль" required>
+      <button type="submit" class="btn btn-create">Зарегистрироваться</button>
+      <div class="auth-toggle">
+        Уже есть аккаунт? <a onclick="showLogin()">Войти</a>
+      </div>
+    </form>
+  </div>
+</div>
+
 <!-- ===== HEADER ===== -->
 <div class="mil-header">
   <div class="mil-header-inner">
@@ -381,9 +471,9 @@ table.full .chk-col input[type="checkbox"]{width:16px;height:16px;cursor:pointer
     </div>
     <div class="mil-header-right">
       <div class="date-display" id="headerDate"></div>
-      <div id="dbStatus" class="db-status offline">
-        <span class="db-status-dot"></span>
-        <span id="dbStatusText">Подключение к базе...</span>
+      <div style="margin-top:6px;">
+        <span id="userDisplay" style="font-size:12px;color:#8b7d3c;"></span>
+        <button class="btn" style="padding:2px 8px;font-size:10px;margin-left:8px;" onclick="logout()">Выйти</button>
       </div>
     </div>
   </div>
@@ -394,8 +484,9 @@ table.full .chk-col input[type="checkbox"]{width:16px;height:16px;cursor:pointer
 <div class="mil-nav">
   <div class="mil-nav-inner">
     <button class="mil-nav-btn active" onclick="switchTab('main',this)">Главная</button>
-    <button class="mil-nav-btn" onclick="switchTab('ld',this)">Личные дела</button>
-    <button class="mil-nav-btn" onclick="switchTab('diplomas',this)">🎓 Дипломы</button>
+    <button class="mil-nav-btn" onclick="switchTab('ld',this)" id="navLd">Личные дела</button>
+    <button class="mil-nav-btn" onclick="switchTab('diplomas',this)" id="navDip">🎓 Дипломы</button>
+    <button class="mil-nav-btn" onclick="switchTab('admin',this)" id="navAdmin" style="display:none;">⚙ Админка</button>
   </div>
 </div>
 
@@ -406,22 +497,29 @@ table.full .chk-col input[type="checkbox"]{width:16px;height:16px;cursor:pointer
   <div class="section active" id="sec-main">
     <div class="welcome-banner">
       <h2>⚔ Добро пожаловать в ЕИС Минобороны</h2>
-      <p>Единая информационная система управления кадровым составом Вооружённых сил Региональной Федерации.</p>
+      <p id="mainMessage">Единая информационная система управления кадровым составом Вооружённых сил Региональной Федерации.</p>
     </div>
+    
+    <!-- Сообщение для гражданских -->
+    <div id="civilianNotice" class="access-denied" style="display:none;">
+      <h3>⚠ Доступ ограничен</h3>
+      <p>Вы не гос. служащий, чтоб просматривать информацию какую-либо</p>
+    </div>
+    
     <div class="info-bar">
-      <div class="info-chip">Пользователь: <span>Администратор</span></div>
-      <div class="info-chip">Уровень доступа: <span>Полный</span></div>
-      <div class="info-chip">Последний вход: <span id="lastLogin"></span></div>
-      <div class="info-chip">База данных: <span id="dbMode">—</span></div>
+      <div class="info-chip">Пользователь: <span id="infoUser">—</span></div>
+      <div class="info-chip">Роль: <span id="infoRole">—</span></div>
+      <div class="info-chip">База: <span id="dbMode">—</span></div>
     </div>
-    <div class="dashboard">
-      <div class="dash-card" onclick="switchTab('ld',document.querySelectorAll('.mil-nav-btn')[1])">
+    
+    <div class="dashboard" id="mainDashboard">
+      <div class="dash-card" onclick="switchTab('ld',document.getElementById('navLd'))" id="dashLd">
         <div class="card-icon">📋</div>
         <h3>Личные дела</h3>
         <p>Создание, редактирование и хранение личных дел военнослужащих</p>
         <div class="card-num" id="caseCount">0</div>
       </div>
-      <div class="dash-card" onclick="switchTab('diplomas',document.querySelectorAll('.mil-nav-btn')[2])">
+      <div class="dash-card" onclick="switchTab('diplomas',document.getElementById('navDip'))" id="dashDip">
         <div class="card-icon">🎓</div>
         <h3>Дипломы</h3>
         <p>Оформление, просмотр и печать дипломов об образовании</p>
@@ -435,11 +533,11 @@ table.full .chk-col input[type="checkbox"]{width:16px;height:16px;cursor:pointer
     <div class="ld-container" id="ldApp"></div>
   </div>
   
-  <!-- ДИПЛОМЫ (ОТДЕЛЬНАЯ ВКЛАДКА) -->
+  <!-- ДИПЛОМЫ -->
   <div class="section" id="sec-diplomas">
     <div class="diplomas-header">
       <h2>🎓 Оформление дипломов</h2>
-      <button class="btn-create" onclick="createDiploma()">+ Новый диплом</button>
+      <button class="btn-create" onclick="createDiploma()" id="btnCreateDip">+ Новый диплом</button>
     </div>
     
     <div class="diploma-filters">
@@ -454,6 +552,28 @@ table.full .chk-col input[type="checkbox"]{width:16px;height:16px;cursor:pointer
     
     <div id="diplomaList"></div>
     <div id="diplomaEditor" style="display:none;"></div>
+  </div>
+  
+  <!-- АДМИН ПАНЕЛЬ -->
+  <div class="section" id="sec-admin">
+    <div class="admin-panel">
+      <h3>⚙ Управление пользователями</h3>
+      <form class="admin-form" onsubmit="createUser(event)">
+        <input type="text" id="newUsername" placeholder="Имя пользователя" required>
+        <input type="password" id="newPassword" placeholder="Пароль" required>
+        <select id="newRole">
+          <option value="Гражданский">Гражданский</option>
+          <option value="ВП">ВП</option>
+          <option value="ВК">ВК</option>
+          <option value="ВА">ВА</option>
+          <option value="К.С.">К.С.</option>
+          <option value="Модер">Модер</option>
+        </select>
+        <button type="submit" class="btn btn-create">Создать пользователя</button>
+      </form>
+      
+      <div class="admin-users-list" id="adminUsersList"></div>
+    </div>
   </div>
 
 </div>
@@ -473,61 +593,200 @@ const SUPABASE_ANON_KEY = 'ТВОЙ_PUBLISHABLE_KEY';
 
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// ========== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ==========
+let currentUser = null;
 let cases = [];
 let diplomas = [];
+let users = [];
 
-// Проверка подключения
-supabase.auth.getUser().then(() => {
-  document.getElementById('dbStatus').className = 'db-status online';
-  document.getElementById('dbStatusText').textContent = '● Supabase подключен';
-  document.getElementById('dbMode').textContent = 'Облако (Supabase)';
-}).catch(() => {
-  document.getElementById('dbStatus').className = 'db-status offline';
-  document.getElementById('dbStatusText').textContent = '○ Нет соединения';
-  document.getElementById('dbMode').textContent = 'Локально';
+// ========== РОЛИ И ПРАВА (ОБНОВЛЕНО!) ==========
+const ROLES = {
+  'Гражданский': { cases: { view: false, create: false, edit: false, delete: false }, diplomas: { view: false, create: false, edit: false, delete: false }, admin: false },
+  'ВП': { cases: { view: true, create: false, edit: true, delete: false }, diplomas: { view: true, create: false, edit: false, delete: false }, admin: false },
+  'ВК': { cases: { view: true, create: true, edit: true, delete: false }, diplomas: { view: true, create: false, edit: false, delete: false }, admin: false },
+  'ВА': { cases: { view: true, create: false, edit: true, delete: false }, diplomas: { view: true, create: true, edit: true, delete: false }, admin: false },
+  'К.С.': { cases: { view: true, create: true, edit: true, delete: true }, diplomas: { view: true, create: true, edit: true, delete: true }, admin: true },
+  'Модер': { cases: { view: true, create: true, edit: true, delete: true }, diplomas: { view: true, create: true, edit: true, delete: true }, admin: true }
+};
+
+// ========== АДМИН ПО УМОЛЧАНИЮ ==========
+const ADMIN_CREDS = {
+  username: 'Швец О.В.',
+  password: 'Google200720'
+};
+
+// ========== ИНИЦИАЛИЗАЦИЯ ==========
+document.addEventListener('DOMContentLoaded', async () => {
+  initAuth();
+  initDate();
+  checkAuth();
 });
 
-// Загрузка данных
-async function loadData(){
-  const { data: c, error: e1 } = await supabase.from('cases').select('*');
-  const { data: d, error: e2 } = await supabase.from('diplomas').select('*');
-  if(!e1 && c) cases = c;
-  if(!e2 && d) diplomas = d;
-  updateCounters();
-  if(document.getElementById('sec-ld').classList.contains('active')) renderCasesList();
-  if(document.getElementById('sec-diplomas').classList.contains('active')) renderDiplomaList();
+// ========== АВТОРИЗАЦИЯ ==========
+function initAuth(){
+  document.getElementById('loginForm').onsubmit = handleLogin;
+  document.getElementById('registerForm').onsubmit = handleRegister;
 }
 
-// Подписка на изменения (Real-time)
-supabase.channel('public-db')
-  .on('postgres_changes', { event: '*', schema: 'public', table: 'cases' }, loadData)
-  .on('postgres_changes', { event: '*', schema: 'public', table: 'diplomas' }, loadData)
-  .subscribe();
-
-/* ========== НАВИГАЦИЯ ========== */
-function switchTab(id, btn){
-  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
-  document.querySelectorAll('.mil-nav-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById('sec-'+id).classList.add('active');
-  if(btn) btn.classList.add('active');
-  if(id==='ld') homeLD();
-  if(id==='diplomas') renderDiplomaList();
+function showLogin(){
+  document.getElementById('loginForm').style.display = 'block';
+  document.getElementById('registerForm').style.display = 'none';
+  hideError();
 }
 
-/* ========== ДАТА В ШАПКЕ ========== */
-(function(){
-  let now=new Date();
-  let months=['января','февраля','марта','апреля','мая','июня',
-              'июля','августа','сентября','октября','ноября','декабря'];
-  document.getElementById('headerDate').textContent=
-    now.getDate()+' '+months[now.getMonth()]+' '+now.getFullYear()+' г.';
-  document.getElementById('lastLogin').textContent=
-    now.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
-})();
+function showRegister(){
+  document.getElementById('loginForm').style.display = 'none';
+  document.getElementById('registerForm').style.display = 'block';
+  hideError();
+}
 
-/* ==========================================================
-   УТИЛИТЫ
-   ========================================================== */
+function showError(msg){
+  const el = document.getElementById('authError');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+function hideError(){
+  document.getElementById('authError').style.display = 'none';
+}
+
+async function handleLogin(e){
+  e.preventDefault();
+  const username = document.getElementById('loginUsername').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  
+  // Проверка админа
+  if(username === ADMIN_CREDS.username && password === ADMIN_CREDS.password){
+    currentUser = { id: 'admin', username: username, role: 'Модер' };
+    completeLogin();
+    return;
+  }
+  
+  // Проверка в базе
+  const {  usersData, error } = await supabase.from('users').select('*').eq('username', username).eq('password', password).single();
+  
+  if(error || !usersData){
+    showError('Неверное имя пользователя или пароль');
+    return;
+  }
+  
+  currentUser = usersData;
+  completeLogin();
+}
+
+async function handleRegister(e){
+  e.preventDefault();
+  const username = document.getElementById('regUsername').value.trim();
+  const password = document.getElementById('regPassword').value;
+  const confirm = document.getElementById('regConfirm').value;
+  
+  if(password !== confirm){
+    showError('Пароли не совпадают');
+    return;
+  }
+  if(username.length < 3){
+    showError('Имя пользователя должно быть не менее 3 символов');
+    return;
+  }
+  if(password.length < 6){
+    showError('Пароль должен быть не менее 6 символов');
+    return;
+  }
+  
+  // Проверка на существование
+  const {  existing } = await supabase.from('users').select('id').eq('username', username).single();
+  if(existing){
+    showError('Пользователь с таким именем уже существует');
+    return;
+  }
+  
+  // Создание пользователя
+  const newUser = {
+    id: 'user_' + Date.now(),
+    username: username,
+    password: password,
+    role: 'Гражданский'
+  };
+  
+  const { error } = await supabase.from('users').insert([newUser]);
+  if(error){
+    showError('Ошибка регистрации: ' + error.message);
+    return;
+  }
+  
+  currentUser = newUser;
+  completeLogin();
+}
+
+function completeLogin(){
+  document.getElementById('authOverlay').classList.add('hidden');
+  document.getElementById('infoUser').textContent = currentUser.username;
+  document.getElementById('infoRole').textContent = currentUser.role;
+  document.getElementById('userDisplay').textContent = currentUser.username;
+  
+  updateUIByRole();
+  loadData();
+}
+
+function logout(){
+  currentUser = null;
+  document.getElementById('authOverlay').classList.remove('hidden');
+  document.getElementById('loginUsername').value = '';
+  document.getElementById('loginPassword').value = '';
+  showLogin();
+  hideError();
+  
+  // Скрыть контент
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById('sec-main').classList.add('active');
+  document.querySelectorAll('.mil-nav-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector('.mil-nav-btn').classList.add('active');
+}
+
+function checkAuth(){
+  const saved = localStorage.getItem('mil_user');
+  if(saved){
+    currentUser = JSON.parse(saved);
+    completeLogin();
+  }
+}
+
+// ========== ОБНОВЛЕНИЕ ИНТЕРФЕЙСА ПО РОЛИ ==========
+function updateUIByRole(){
+  if(!currentUser) return;
+  const perms = ROLES[currentUser.role] || ROLES['Гражданский'];
+  
+  // Скрыть/показать навигацию
+  document.getElementById('navLd').style.display = perms.cases.view ? '' : 'none';
+  document.getElementById('navDip').style.display = perms.diplomas.view ? '' : 'none';
+  document.getElementById('navAdmin').style.display = perms.admin ? '' : 'none';
+  
+  // Скрыть/показать дашборд
+  document.getElementById('dashLd').style.display = perms.cases.view ? '' : 'none';
+  document.getElementById('dashDip').style.display = perms.diplomas.view ? '' : 'none';
+  
+  // Сообщение для гражданских
+  const isCivilian = currentUser.role === 'Гражданский';
+  document.getElementById('civilianNotice').style.display = isCivilian ? '' : 'none';
+  document.getElementById('mainMessage').textContent = isCivilian ? 
+    'Вы не гос. служащий, чтоб просматривать информацию какую-либо' :
+    'Единая информационная система управления кадровым составом Вооружённых сил Региональной Федерации.';
+  
+  // Кнопки в дипломах
+  document.getElementById('btnCreateDip').style.display = perms.diplomas.create ? '' : 'none';
+  
+  // Загрузить список пользователей для админа
+  if(perms.admin) loadAdminUsers();
+}
+
+// ========== ДАТА В ШАПКЕ ==========
+function initDate(){
+  let now = new Date();
+  let months = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+  document.getElementById('headerDate').textContent = now.getDate()+' '+months[now.getMonth()]+' '+now.getFullYear()+' г.';
+}
+
+// ========== УТИЛИТЫ ==========
 function updateCounters(){
   const cc = document.getElementById('caseCount');
   const dc = document.getElementById('diplomaCount');
@@ -535,18 +794,63 @@ function updateCounters(){
   if(dc) dc.textContent = diplomas.length;
 }
 
-/* ==========================================================
-   ЛИЧНЫЕ ДЕЛА + 🔍 ПОИСК
-   ========================================================== */
+function hasPerm(type, action){
+  if(!currentUser) return false;
+  const perms = ROLES[currentUser.role] || ROLES['Гражданский'];
+  return perms[type]?.[action] || false;
+}
+
+// ========== НАВИГАЦИЯ ==========
+function switchTab(id, btn){
+  if(id === 'ld' && !hasPerm('cases', 'view')){ alert('Нет доступа'); return; }
+  if(id === 'diplomas' && !hasPerm('diplomas', 'view')){ alert('Нет доступа'); return; }
+  if(id === 'admin' && !hasPerm('admin', true)){ alert('Нет доступа'); return; }
+  
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.mil-nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('sec-'+id).classList.add('active');
+  if(btn) btn.classList.add('active');
+  
+  if(id === 'ld') homeLD();
+  if(id === 'diplomas') renderDiplomaList();
+  if(id === 'admin') loadAdminUsers();
+}
+
+// ========== ЗАГРУЗКА ДАННЫХ ==========
+async function loadData(){
+  if(!currentUser) return;
+  
+  const {  c } = await supabase.from('cases').select('*');
+  const {  d } = await supabase.from('diplomas').select('*');
+  
+  if(c) cases = c;
+  if(d) diplomas = d;
+  
+  updateCounters();
+  if(document.getElementById('sec-ld').classList.contains('active')) renderCasesList();
+  if(document.getElementById('sec-diplomas').classList.contains('active')) renderDiplomaList();
+}
+
+supabase.channel('public-db')
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'cases' }, loadData)
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'diplomas' }, loadData)
+  .subscribe();
+
+// ========== ЛИЧНЫЕ ДЕЛА ==========
 const ldApp = document.getElementById('ldApp');
 
 function homeLD(){
+  if(!hasPerm('cases', 'view')){
+    ldApp.innerHTML = '<p style="color:#6a7a5e;padding:20px;">Нет доступа к личным делам</p>';
+    return;
+  }
+  
   ldApp.innerHTML = `
     <h2>📋 Личные дела военнослужащих</h2>
     <div class="ld-toolbar" style="margin-bottom:15px;">
       <input type="text" id="caseSearch" placeholder="🔍 Поиск по названию..." oninput="renderCasesList()">
     </div>
-    <button class="btn-create" onclick="createCase()">+ Создать дело</button>
+    ${hasPerm('cases','create') ? '<button class="btn-create" onclick="createCase()">+ Создать дело</button>' : ''}
     <hr>
     <div id="casesList"></div>
   `;
@@ -560,7 +864,7 @@ function renderCasesList(){
   const filtered = cases.filter(c => (c.title || '').toLowerCase().includes(search));
 
   if(filtered.length === 0){
-    container.innerHTML = `<p style="color:#6a7a5e;margin-top:15px;">${cases.length === 0 ? 'Нет созданных дел. Нажмите «Создать дело» для начала работы.' : 'Ничего не найдено по запросу.'}</p>`;
+    container.innerHTML = `<p style="color:#6a7a5e;margin-top:15px;">${cases.length === 0 ? 'Нет созданных дел.' : 'Ничего не найдено.'}</p>`;
     return;
   }
 
@@ -568,145 +872,72 @@ function renderCasesList(){
     <div class="case-item">
       <b>📁 ${c.title}</b>
       <button class="btn btn-open" onclick="openCase('${c.id}')">Открыть</button>
-      <button class="btn btn-edit" onclick="renameCase('${c.id}')">✏️</button>
-      <button class="btn btn-del" onclick="deleteCase('${c.id}')">🗑</button>
+      ${hasPerm('cases','edit') ? `<button class="btn btn-edit" onclick="renameCase('${c.id}')">✏️</button>` : ''}
+      ${hasPerm('cases','delete') ? `<button class="btn btn-del" onclick="deleteCase('${c.id}')">🗑</button>` : ''}
     </div>
   `).join('');
 }
 
 async function createCase(){
+  if(!hasPerm('cases', 'create')) return;
   const id = 'case_' + Date.now();
-  await supabase.from('cases').insert([{ id, title: "Новое дело", data: {} }]);
+  await supabase.from('cases').insert([{ id, title: "Новое дело",  {} }]);
 }
 
 async function deleteCase(id){
-  if(confirm("Удалить дело «"+cases.find(c=>c.id===id)?.title+"»?")){
-    await supabase.from('cases').delete().eq('id', id);
-  }
+  if(!hasPerm('cases', 'delete')) return;
+  if(confirm("Удалить дело?")) await supabase.from('cases').delete().eq('id', id);
 }
 
 async function renameCase(id){
+  if(!hasPerm('cases', 'edit')) return;
   let t = prompt("Название дела:", cases.find(c=>c.id===id)?.title || '');
-  if(t){
-    await supabase.from('cases').update({ title: t }).eq('id', id);
-  }
+  if(t) await supabase.from('cases').update({ title: t }).eq('id', id);
 }
 
 function openCase(id){
+  if(!hasPerm('cases', 'view')) return;
   const c = cases.find(x=>x.id===id);
   if(!c) return;
   const d = c.data || {};
+  
   ldApp.innerHTML = `
     <div class="ld-toolbar">
       <button class="btn-back" onclick="homeLD()">← Назад к списку</button>
-      <input value="${c.title}" onchange="supabase.from('cases').update({title:this.value}).eq('id','${id}')">
-      <button class="btn-save" onclick="saveCase('${id}')">💾 Сохранить</button>
+      ${hasPerm('cases','edit') ? `<input value="${c.title}" onchange="supabase.from('cases').update({title:this.value}).eq('id','${id}')">` : `<b>${c.title}</b>`}
+      ${hasPerm('cases','edit') ? `<button class="btn-save" onclick="saveCase('${id}')">💾 Сохранить</button>` : ''}
     </div>
     ${cover(d)}${disc(d)}${reward(d)}
   `;
 }
 
 async function saveCase(id){
+  if(!hasPerm('cases', 'edit')) return;
   let data = {};
   document.querySelectorAll("[data-key]").forEach(el => {
     if(el.type === "checkbox") data[el.dataset.key] = el.checked;
     else data[el.dataset.key] = el.innerText;
   });
-  await supabase.from('cases').update({ data: data }).eq('id', id);
+  await supabase.from('cases').update({  data }).eq('id', id);
   alert("Сохранено ✓");
 }
 
+// ========== ФУНКЦИИ ГЕНЕРАЦИИ СТРАНИЦ ==========
 function cover(d){
-  return `
-<div class="page cover">
-  <div class="photo-box">МЕСТО ДЛЯ<br>ФОТОГРАФИИ</div>
-  <div class="pg-center" style="font-size:14pt;font-weight:700;color:#000;">
-    Региональная Федерация<br>Вооруженные силы Региональной Федерации
-  </div>
-  <div class="pg-center" style="margin-top:5mm;">
-    <img src="https://s2.radikal.cloud/2026/04/29/dfdf_JGfgeca8786ddfc9c6341.webp" style="height:42mm;" alt="герб">
-  </div>
-  <div class="pg-center" style="margin-top:14mm;">
-    <div style="font-size:31pt;font-weight:700;color:#000;">ЛИЧНОЕ ДЕЛО</div>
-    <div style="font-size:16pt;font-weight:700;margin-top:1mm;color:#000;">ВОЕННОСЛУЖАЩЕГО</div>
-    <div style="font-size:14pt;margin-top:3mm;color:#000;">
-      №<span contenteditable data-key="num" class="uline" style="min-width:40mm;">${d.num||''}</span>
-    </div>
-  </div>
-  <div style="margin-top:14mm;">
-    <div contenteditable data-key="fio" style="border-bottom:1px solid #000;min-height:8mm;font-size:14pt;color:#000;">${d.fio||''}</div>
-    <div class="pg-center" style="font-size:12pt;margin-top:1mm;color:#000;">( Фамилия, Имя, Отчество )</div>
-  </div>
-  <table class="ftbl" style="margin-top:6mm;">
-    <tr>
-      <td class="lbl">дата рождения</td><td class="val" contenteditable data-key="birth">${d.birth||''}</td>
-      <td class="lbl2">пол</td><td class="val" contenteditable data-key="gender">${d.gender||''}</td>
-    </tr>
-    <tr>
-      <td class="lbl">место рождения</td><td class="val" contenteditable data-key="place">${d.place||''}</td>
-      <td class="lbl2">гражданство</td><td class="val" contenteditable data-key="cit">${d.cit||''}</td>
-    </tr>
-    <tr>
-      <td class="lbl">образование</td><td class="val" contenteditable data-key="edu">${d.edu||''}</td>
-      <td class="lbl2">№ паспорта</td><td class="val" contenteditable data-key="pass">${d.pass||''}</td>
-    </tr>
-  </table>
-  <div style="margin-top:10mm;font-size:14pt;color:#000;">
-    призван «<span contenteditable data-key="draft_d" class="uline" style="min-width:8mm;">${d.draft_d||''}</span>»
-    <span contenteditable data-key="draft_m" class="uline" style="min-width:50mm;">${d.draft_m||''}</span>
-    20<span contenteditable data-key="draft_y" class="uline" style="min-width:12mm;">${d.draft_y||''}</span> г.
-  </div>
-  <div style="margin-top:12mm;font-size:14pt;color:#000;">
-    ответственный <span contenteditable data-key="resp" style="display:inline-block;border-bottom:1px solid #000;min-width:78%;min-height:1em;">${d.resp||''}</span>
-    <div class="pg-center" style="font-size:12pt;margin-top:1mm;color:#000;">( Фамилия, Имя, Отчество )</div>
-  </div>
-  <div style="position:absolute;bottom:20mm;left:20mm;right:20mm;text-align:center;">
-    <div style="border-top:1px solid #000;padding-top:2mm;">
-      <span style="font-size:14pt;font-weight:700;color:#000;">Военный комиссариат ВС РФ</span>
-    </div>
-    <div style="font-size:12pt;font-weight:700;margin-top:1mm;color:#000;">(орган военно-мобилизационной и учетно-призывной работы)</div>
-  </div>
-</div>`;
+  return `<div class="page cover"><div class="photo-box">МЕСТО ДЛЯ<br>ФОТОГРАФИИ</div><div class="pg-center" style="font-size:14pt;font-weight:700;color:#000;">Региональная Федерация<br>Вооруженные силы Региональной Федерации</div><div class="pg-center" style="margin-top:5mm;"><img src="https://s2.radikal.cloud/2026/04/29/dfdf_JGfgeca8786ddfc9c6341.webp" style="height:42mm;" alt="герб"></div><div class="pg-center" style="margin-top:14mm;"><div style="font-size:31pt;font-weight:700;color:#000;">ЛИЧНОЕ ДЕЛО</div><div style="font-size:16pt;font-weight:700;margin-top:1mm;color:#000;">ВОЕННОСЛУЖАЩЕГО</div><div style="font-size:14pt;margin-top:3mm;color:#000;">№<span contenteditable data-key="num" class="uline" style="min-width:40mm;">${d.num||''}</span></div></div><div style="margin-top:14mm;"><div contenteditable data-key="fio" style="border-bottom:1px solid #000;min-height:8mm;font-size:14pt;color:#000;">${d.fio||''}</div><div class="pg-center" style="font-size:12pt;margin-top:1mm;color:#000;">( Фамилия, Имя, Отчество )</div></div><table class="ftbl" style="margin-top:6mm;"><tr><td class="lbl">дата рождения</td><td class="val" contenteditable data-key="birth">${d.birth||''}</td><td class="lbl2">пол</td><td class="val" contenteditable data-key="gender">${d.gender||''}</td></tr><tr><td class="lbl">место рождения</td><td class="val" contenteditable data-key="place">${d.place||''}</td><td class="lbl2">гражданство</td><td class="val" contenteditable data-key="cit">${d.cit||''}</td></tr><tr><td class="lbl">образование</td><td class="val" contenteditable data-key="edu">${d.edu||''}</td><td class="lbl2">№ паспорта</td><td class="val" contenteditable data-key="pass">${d.pass||''}</td></tr></table><div style="margin-top:10mm;font-size:14pt;color:#000;">призван «<span contenteditable data-key="draft_d" class="uline" style="min-width:8mm;">${d.draft_d||''}</span>» <span contenteditable data-key="draft_m" class="uline" style="min-width:50mm;">${d.draft_m||''}</span> 20<span contenteditable data-key="draft_y" class="uline" style="min-width:12mm;">${d.draft_y||''}</span> г.</div><div style="margin-top:12mm;font-size:14pt;color:#000;">ответственный <span contenteditable data-key="resp" style="display:inline-block;border-bottom:1px solid #000;min-width:78%;min-height:1em;">${d.resp||''}</span><div class="pg-center" style="font-size:12pt;margin-top:1mm;color:#000;">( Фамилия, Имя, Отчество )</div></div><div style="position:absolute;bottom:20mm;left:20mm;right:20mm;text-align:center;"><div style="border-top:1px solid #000;padding-top:2mm;"><span style="font-size:14pt;font-weight:700;color:#000;">Военный комиссариат ВС РФ</span></div><div style="font-size:12pt;font-weight:700;margin-top:1mm;color:#000;">(орган военно-мобилизационной и учетно-призывной работы)</div></div></div>`;
 }
 
 function disc(d){
-  let rows = "";
-  for(let i=1;i<=14;i++){
-    rows += `<tr><td class="num">${i}</td>
-      <td contenteditable data-key="d1_${i}">${d['d1_'+i]||''}</td>
-      <td contenteditable data-key="d2_${i}">${d['d2_'+i]||''}</td>
-      <td contenteditable data-key="d3_${i}">${d['d3_'+i]||''}</td>
-      <td contenteditable data-key="d4_${i}">${d['d4_'+i]||''}</td>
-      <td contenteditable data-key="d5_${i}">${d['d5_'+i]||''}</td>
-      <td class="chk-col"><input type="checkbox" data-key="d6_${i}" ${d['d6_'+i]?'checked':''}></td>
-    </tr>`;
-  }
-  return `<div class="page-flex"><h3>ЛИСТ ДИСЦИПЛИНАРНЫХ ВЗЫСКАНИЙ</h3><div class="table-wrap">
-    <table class="full"><colgroup><col style="width:9mm;"><col style="width:22%;"><col style="width:14%;"><col style="width:22%;"><col style="width:13%;"><col style="width:13%;"><col style="width:12%;"></colgroup>
-    <thead><tr><th>№<br>пп</th><th>Фамилия, имя,<br>отчество<br>ответственного</th><th>Дата и номер<br>выдачи<br>приказа</th><th>Краткое<br>содержание<br>проступка</th><th>Вид<br>взыскания</th><th>Основание</th><th>Отметка<br>о снятии<br>взыскания</th></tr></thead>
-    <tbody>${rows}</tbody></table></div></div>`;
+  let rows=""; for(let i=1;i<=14;i++){ rows+=`<tr><td class="num">${i}</td><td contenteditable data-key="d1_${i}">${d['d1_'+i]||''}</td><td contenteditable data-key="d2_${i}">${d['d2_'+i]||''}</td><td contenteditable data-key="d3_${i}">${d['d3_'+i]||''}</td><td contenteditable data-key="d4_${i}">${d['d4_'+i]||''}</td><td contenteditable data-key="d5_${i}">${d['d5_'+i]||''}</td><td class="chk-col"><input type="checkbox" data-key="d6_${i}" ${d['d6_'+i]?'checked':''}></td></tr>`; }
+  return `<div class="page-flex"><h3>ЛИСТ ДИСЦИПЛИНАРНЫХ ВЗЫСКАНИЙ</h3><div class="table-wrap"><table class="full"><colgroup><col style="width:9mm;"><col style="width:22%;"><col style="width:14%;"><col style="width:22%;"><col style="width:13%;"><col style="width:13%;"><col style="width:12%;"></colgroup><thead><tr><th>№<br>пп</th><th>Фамилия, имя,<br>отчество<br>ответственного</th><th>Дата и номер<br>выдачи<br>приказа</th><th>Краткое<br>содержание<br>проступка</th><th>Вид<br>взыскания</th><th>Основание</th><th>Отметка<br>о снятии<br>взыскания</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
 }
 
 function reward(d){
-  let rows = "";
-  for(let i=1;i<=14;i++){
-    rows += `<tr><td class="num">${i}</td>
-      <td contenteditable data-key="r1_${i}">${d['r1_'+i]||''}</td>
-      <td contenteditable data-key="r2_${i}">${d['r2_'+i]||''}</td>
-      <td contenteditable data-key="r3_${i}">${d['r3_'+i]||''}</td>
-      <td contenteditable data-key="r4_${i}">${d['r4_'+i]||''}</td>
-    </tr>`;
-  }
-  return `<div class="page-flex"><h3>ЛИСТ ПООЩРЕНИЙ</h3><div class="table-wrap">
-    <table class="full"><colgroup><col style="width:9mm;"><col style="width:28%;"><col style="width:17%;"><col style="width:22%;"><col style="width:28%;"></colgroup>
-    <thead><tr><th>№<br>пп</th><th>Фамилия, имя,<br>отчество<br>ответственного</th><th>Дата и номер<br>выдачи<br>приказа</th><th>Вид<br>поощрения</th><th>За что</th></tr></thead>
-    <tbody>${rows}</tbody></table></div></div>`;
+  let rows=""; for(let i=1;i<=14;i++){ rows+=`<tr><td class="num">${i}</td><td contenteditable data-key="r1_${i}">${d['r1_'+i]||''}</td><td contenteditable data-key="r2_${i}">${d['r2_'+i]||''}</td><td contenteditable data-key="r3_${i}">${d['r3_'+i]||''}</td><td contenteditable data-key="r4_${i}">${d['r4_'+i]||''}</td></tr>`; }
+  return `<div class="page-flex"><h3>ЛИСТ ПООЩРЕНИЙ</h3><div class="table-wrap"><table class="full"><colgroup><col style="width:9mm;"><col style="width:28%;"><col style="width:17%;"><col style="width:22%;"><col style="width:28%;"></colgroup><thead><tr><th>№<br>пп</th><th>Фамилия, имя,<br>отчество<br>ответственного</th><th>Дата и номер<br>выдачи<br>приказа</th><th>Вид<br>поощрения</th><th>За что</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
 }
 
-/* ==========================================================
-   🎓 ДИПЛОМЫ
-   ========================================================== */
-
+// ========== ДИПЛОМЫ ==========
 const DIPLOMA_TEMPLATES = {
   'Диплом о высшем образовании магистратура': 'https://s10.iimage.su/s/30/gd7bC5txU1ZZarspdrYQZZqzA7cZMglzwtKCArAR6.png',
   'Диплом о высшем образовании Бакалавриат': 'https://s10.iimage.su/s/01/gAXX41KxVCFMrw3P4QvOom30R4QK2LvitAH2zVnwo.png',
@@ -716,193 +947,102 @@ const DIPLOMA_TEMPLATES = {
 let currentDiplomaIdx = null;
 
 function renderDiplomaList(){
+  if(!hasPerm('diplomas', 'view')){
+    document.getElementById('diplomaList').innerHTML = '<p style="color:#6a7a5e;padding:20px;">Нет доступа к дипломам</p>';
+    return;
+  }
+  
   const container = document.getElementById('diplomaList');
   const editor = document.getElementById('diplomaEditor');
   const search = document.getElementById('diplomaSearch').value.toLowerCase();
   const typeFilter = document.getElementById('typeFilter').value;
   
-  let filtered = diplomas.filter(d => 
-    (d.title||'').toLowerCase().includes(search) &&
-    (!typeFilter || d.type === typeFilter)
-  );
+  let filtered = diplomas.filter(d => (d.title||'').toLowerCase().includes(search) && (!typeFilter || d.type === typeFilter));
   
   editor.style.display = 'none';
   
   if(filtered.length === 0){
-    container.innerHTML = `
-      <div class="diploma-empty">
-        <span class="icon">🎓</span>
-        <p>Дипломы не найдены</p>
-        <button class="btn-create" onclick="createDiploma()">+ Создать первый диплом</button>
-      </div>`;
+    container.innerHTML = `<div class="diploma-empty"><span class="icon">🎓</span><p>Дипломы не найдены</p>${hasPerm('diplomas','create')?'<button class="btn-create" onclick="createDiploma()">+ Создать первый диплом</button>':''}</div>`;
     return;
   }
   
   const grouped = {};
-  filtered.forEach(d => {
-    if(!grouped[d.type]) grouped[d.type] = [];
-    grouped[d.type].push(d);
-  });
+  filtered.forEach(d => { if(!grouped[d.type]) grouped[d.type]=[]; grouped[d.type].push(d); });
   
   let html = '';
   Object.keys(grouped).sort().forEach(type => {
-    html += `
-      <div class="diploma-type-section">
-        <h3>${type}</h3>
-        <div class="diploma-grid">
-          ${grouped[type].map(d => {
-            return `
-              <div class="diploma-card">
-                <h4>🎓 ${d.title || 'Без названия'}</h4>
-                <p><b>Дата:</b> ${d.date || '—'}</p>
-                <div class="card-actions">
-                  <button class="btn btn-view" onclick="viewDiploma('${d.id}')">👁 Просмотр</button>
-                  <button class="btn btn-edit" onclick="editDiploma('${d.id}')">✏️</button>
-                  <button class="btn btn-print" onclick="printDiploma('${d.id}')">🖨</button>
-                  <button class="btn btn-del" onclick="deleteDiploma('${d.id}')">🗑</button>
-                </div>
-              </div>`;
-          }).join('')}
+    html += `<div class="diploma-type-section"><h3>${type}</h3><div class="diploma-grid">${grouped[type].map(d => `
+      <div class="diploma-card">
+        <h4>🎓 ${d.title || 'Без названия'}</h4>
+        <p><b>Дата:</b> ${d.date || '—'}</p>
+        <div class="card-actions">
+          <button class="btn btn-view" onclick="viewDiploma('${d.id}')">👁</button>
+          ${hasPerm('diplomas','edit') ? `<button class="btn btn-edit" onclick="editDiploma('${d.id}')">✏️</button>` : ''}
+          ${hasPerm('diplomas','edit') ? `<button class="btn btn-print" onclick="printDiploma('${d.id}')">🖨</button>` : ''}
+          ${hasPerm('diplomas','delete') ? `<button class="btn btn-del" onclick="deleteDiploma('${d.id}')">🗑</button>` : ''}
         </div>
-      </div>`;
+      </div>`).join('')}</div></div>`;
   });
-  
   container.innerHTML = html;
 }
 
 async function createDiploma(){
+  if(!hasPerm('diplomas', 'create')) return;
   const id = 'dip_' + Date.now();
-  await supabase.from('diplomas').insert([{
-    id: id,
-    title: 'Новый диплом',
-    date: new Date().toLocaleDateString('ru-RU'),
-    type: 'Диплом о высшем образовании магистратура',
-    fields: {}
-  }]);
+  await supabase.from('diplomas').insert([{ id, title: 'Новый диплом', date: new Date().toLocaleDateString('ru-RU'), type: 'Диплом о высшем образовании магистратура', fields: {} }]);
   setTimeout(() => editDiploma(id), 200);
 }
 
 function viewDiploma(id){
-  const d = diplomas.find(x=>x.id===id);
-  if(!d) return;
+  if(!hasPerm('diplomas', 'view')) return;
+  const d = diplomas.find(x=>x.id===id); if(!d) return;
   document.getElementById('diplomaList').style.display = 'none';
-  const editor = document.getElementById('diplomaEditor');
-  editor.style.display = 'block';
+  const editor = document.getElementById('diplomaEditor'); editor.style.display = 'block';
   currentDiplomaIdx = id;
-  
   const bgUrl = DIPLOMA_TEMPLATES[d.type] || DIPLOMA_TEMPLATES['Диплом о высшем образовании магистратура'];
-  
-  editor.innerHTML = `
-    <div class="ld-toolbar">
-      <button class="btn-back" onclick="backToDiplomaList()">← К списку</button>
-      <span style="color:#d4af37;font-weight:600;">👁 ${d.type}: ${d.title}</span>
-      <button class="btn btn-print" onclick="window.print()">🖨 Печать</button>
-    </div>
-    <div class="page-wrapper">
-      <div class="diploma-container">
-        <img src="${bgUrl}" alt="Бланк" class="diploma-bg" id="diplomaBg">
-        ${generateDiplomaInputs(d.fields, true)}
-      </div>
-    </div>
-  `;
+  editor.innerHTML = `<div class="ld-toolbar"><button class="btn-back" onclick="backToDiplomaList()">← К списку</button><span style="color:#d4af37;font-weight:600;">👁 ${d.type}: ${d.title}</span><button class="btn btn-print" onclick="window.print()">🖨</button></div><div class="page-wrapper"><div class="diploma-container"><img src="${bgUrl}" alt="Бланк" class="diploma-bg">${generateDiplomaInputs(d.fields, true)}</div></div>`;
 }
 
 function editDiploma(id){
-  const d = diplomas.find(x=>x.id===id);
-  if(!d) return;
+  if(!hasPerm('diplomas', 'edit')) return;
+  const d = diplomas.find(x=>x.id===id); if(!d) return;
   document.getElementById('diplomaList').style.display = 'none';
-  const editor = document.getElementById('diplomaEditor');
-  editor.style.display = 'block';
+  const editor = document.getElementById('diplomaEditor'); editor.style.display = 'block';
   currentDiplomaIdx = id;
-  
   const bgUrl = DIPLOMA_TEMPLATES[d.type] || DIPLOMA_TEMPLATES['Диплом о высшем образовании магистратура'];
-  
-  editor.innerHTML = `
-    <div class="ld-toolbar">
-      <button class="btn-back" onclick="backToDiplomaList()">← К списку</button>
-      <input type="text" id="diplomaTitleInput" value="${d.title||''}" placeholder="Название">
-      <select id="diplomaTypeInput" onchange="updateDiplomaBackground()">
-        <option ${d.type==='Диплом о высшем образовании магистратура'?'selected':''}>Диплом о высшем образовании магистратура</option>
-        <option ${d.type==='Диплом о высшем образовании Бакалавриат'?'selected':''}>Диплом о высшем образовании Бакалавриат</option>
-        <option ${d.type==='Диплом о среднем профессиональном образовании'?'selected':''}>Диплом о среднем профессиональном образовании</option>
-      </select>
-      <button class="btn-save" onclick="saveDiploma()">💾 Сохранить</button>
-      <button class="btn btn-print" onclick="window.print()">🖨 Печать</button>
-    </div>
-    <div class="page-wrapper">
-      <div class="diploma-container">
-        <img src="${bgUrl}" alt="Бланк" class="diploma-bg" id="diplomaBg">
-        ${generateDiplomaInputs(d.fields, false)}
-      </div>
-    </div>
-  `;
+  editor.innerHTML = `<div class="ld-toolbar"><button class="btn-back" onclick="backToDiplomaList()">← К списку</button><input type="text" id="diplomaTitleInput" value="${d.title||''}" placeholder="Название"><select id="diplomaTypeInput" onchange="updateDiplomaBackground()"><option ${d.type==='Диплом о высшем образовании магистратура'?'selected':''}>Диплом о высшем образовании магистратура</option><option ${d.type==='Диплом о высшем образовании Бакалавриат'?'selected':''}>Диплом о высшем образовании Бакалавриат</option><option ${d.type==='Диплом о среднем профессиональном образовании'?'selected':''}>Диплом о среднем профессиональном образовании</option></select><button class="btn-save" onclick="saveDiploma()">💾</button><button class="btn btn-print" onclick="window.print()">🖨</button></div><div class="page-wrapper"><div class="diploma-container"><img src="${bgUrl}" alt="Бланк" class="diploma-bg" id="diplomaBg">${generateDiplomaInputs(d.fields, false)}</div></div>`;
 }
 
 function updateDiplomaBackground(){
   const type = document.getElementById('diplomaTypeInput').value;
   const bg = document.getElementById('diplomaBg');
-  if(bg && DIPLOMA_TEMPLATES[type]){
-    bg.src = DIPLOMA_TEMPLATES[type];
-  }
+  if(bg && DIPLOMA_TEMPLATES[type]) bg.src = DIPLOMA_TEMPLATES[type];
 }
 
 function generateDiplomaInputs(fields, readonly){
-  const positions = [
-    {top:"4.06%",left:"70.2%",width:"13.8%",key:"f1"},
-    {top:"9.85%",left:"83.1%",width:"14.6%",key:"f2"},
-    {top:"16.65%",left:"54.2%",width:"44%",key:"f3"},
-    {top:"22.59%",left:"54.2%",width:"43.8%",key:"f4"},
-    {top:"28.54%",left:"69.9%",width:"5.1%",key:"f5"},
-    {top:"33.07%",left:"54.4%",width:"44.3%",key:"f6"},
-    {top:"40%",left:"68.6%",width:"30.8%",key:"f7"},
-    {top:"45.52%",left:"53.6%",width:"45.2%",key:"f8"},
-    {top:"55.14%",left:"67.7%",width:"29%",key:"f9"},
-    {top:"60.94%",left:"53.9%",width:"44.1%",key:"f10"},
-    {top:"64.62%",left:"73.5%",width:"24.6%",key:"f11"},
-    {top:"68.87%",left:"53.6%",width:"45.2%",key:"f12"},
-    {top:"72.83%",left:"54.2%",width:"45.1%",key:"f13"},
-    {top:"79.62%",left:"63.4%",width:"25.8%",key:"f14"},
-    {top:"82.74%",left:"55.2%",width:"41.2%",key:"f15"},
-    {top:"85.85%",left:"71.8%",width:"25%",key:"f16"},
-    {top:"88.54%",left:"54.9%",width:"41.3%",key:"f17"},
-    {top:"93.49%",left:"72.5%",width:"24.5%",key:"f18"}
-  ];
-  
-  return positions.map(p => 
-    `<input type="text" class="diploma-input" 
-            style="top:${p.top};left:${p.left};width:${p.width};height:3.5%" 
-            data-key="${p.key}" value="${(fields && fields[p.key])||''}" ${readonly ? 'readonly' : ''}>`
-  ).join('');
+  const positions = [{top:"4.06%",left:"70.2%",width:"13.8%",key:"f1"},{top:"9.85%",left:"83.1%",width:"14.6%",key:"f2"},{top:"16.65%",left:"54.2%",width:"44%",key:"f3"},{top:"22.59%",left:"54.2%",width:"43.8%",key:"f4"},{top:"28.54%",left:"69.9%",width:"5.1%",key:"f5"},{top:"33.07%",left:"54.4%",width:"44.3%",key:"f6"},{top:"40%",left:"68.6%",width:"30.8%",key:"f7"},{top:"45.52%",left:"53.6%",width:"45.2%",key:"f8"},{top:"55.14%",left:"67.7%",width:"29%",key:"f9"},{top:"60.94%",left:"53.9%",width:"44.1%",key:"f10"},{top:"64.62%",left:"73.5%",width:"24.6%",key:"f11"},{top:"68.87%",left:"53.6%",width:"45.2%",key:"f12"},{top:"72.83%",left:"54.2%",width:"45.1%",key:"f13"},{top:"79.62%",left:"63.4%",width:"25.8%",key:"f14"},{top:"82.74%",left:"55.2%",width:"41.2%",key:"f15"},{top:"85.85%",left:"71.8%",width:"25%",key:"f16"},{top:"88.54%",left:"54.9%",width:"41.3%",key:"f17"},{top:"93.49%",left:"72.5%",width:"24.5%",key:"f18"}];
+  return positions.map(p => `<input type="text" class="diploma-input" style="top:${p.top};left:${p.left};width:${p.width};height:3.5%" data-key="${p.key}" value="${(fields && fields[p.key])||''}" ${readonly ? 'readonly' : ''}>`).join('');
 }
 
 async function saveDiploma(){
-  if(!currentDiplomaIdx) return;
-  const d = diplomas.find(x=>x.id===currentDiplomaIdx);
-  if(!d) return;
-  
+  if(!hasPerm('diplomas', 'edit') || !currentDiplomaIdx) return;
+  const d = diplomas.find(x=>x.id===currentDiplomaIdx); if(!d) return;
   const titleInput = document.getElementById('diplomaTitleInput');
   const typeInput = document.getElementById('diplomaTypeInput');
-  
   const updateData = {};
   if(titleInput) updateData.title = titleInput.value;
   if(typeInput) updateData.type = typeInput.value;
   updateData.date = d.date || new Date().toLocaleDateString('ru-RU');
-  
   const fieldsData = {};
-  document.querySelectorAll('.diploma-input[data-key]').forEach(inp => {
-    fieldsData[inp.dataset.key] = inp.value;
-  });
+  document.querySelectorAll('.diploma-input[data-key]').forEach(inp => fieldsData[inp.dataset.key] = inp.value);
   updateData.fields = fieldsData;
-  
   await supabase.from('diplomas').update(updateData).eq('id', currentDiplomaIdx);
-  alert("✅ Диплом сохранён");
+  alert("✅ Сохранено");
 }
 
 async function deleteDiploma(id){
-  if(confirm("Удалить диплом «"+diplomas.find(d=>d.id===id)?.title+"»?")){
-    await supabase.from('diplomas').delete().eq('id', id);
-    backToDiplomaList();
-  }
+  if(!hasPerm('diplomas', 'delete')) return;
+  if(confirm("Удалить диплом?")) { await supabase.from('diplomas').delete().eq('id', id); backToDiplomaList(); }
 }
 
 function backToDiplomaList(){
@@ -911,13 +1051,65 @@ function backToDiplomaList(){
   renderDiplomaList();
 }
 
-function printDiploma(id){
-  editDiploma(id);
-  setTimeout(() => window.print(), 200);
+function printDiploma(id){ editDiploma(id); setTimeout(() => window.print(), 200); }
+
+// ========== АДМИН ПАНЕЛЬ ==========
+async function loadAdminUsers(){
+  if(!hasPerm('admin', true)) return;
+  const {  usersData } = await supabase.from('users').select('*');
+  users = usersData || [];
+  
+  const list = document.getElementById('adminUsersList');
+  if(!list) return;
+  
+  list.innerHTML = users.map(u => `
+    <div class="admin-user-item">
+      <b>${u.username}</b>
+      <span class="role-badge">${u.role}</span>
+      <select onchange="updateUserRole('${u.id}', this.value)" ${u.username === ADMIN_CREDS.username ? 'disabled' : ''}>
+        ${Object.keys(ROLES).map(r => `<option value="${r}" ${u.role===r?'selected':''}>${r}</option>`).join('')}
+      </select>
+      ${u.username !== ADMIN_CREDS.username ? `<button class="btn btn-del" onclick="deleteUser('${u.id}')">🗑</button>` : ''}
+    </div>
+  `).join('');
 }
 
-// Инициализация
-loadData();
+async function createUser(e){
+  e.preventDefault();
+  if(!hasPerm('admin', true)) return;
+  
+  const username = document.getElementById('newUsername').value.trim();
+  const password = document.getElementById('newPassword').value;
+  const role = document.getElementById('newRole').value;
+  
+  if(username.length < 3 || password.length < 6){
+    alert('Имя пользователя (мин. 3) и пароль (мин. 6) должны быть длиннее');
+    return;
+  }
+  
+  const {  existing } = await supabase.from('users').select('id').eq('username', username).single();
+  if(existing){ alert('Пользователь уже существует'); return; }
+  
+  await supabase.from('users').insert([{ id: 'user_'+Date.now(), username, password, role }]);
+  document.getElementById('newUsername').value = '';
+  document.getElementById('newPassword').value = '';
+  loadAdminUsers();
+  alert('Пользователь создан');
+}
+
+async function updateUserRole(userId, newRole){
+  if(!hasPerm('admin', true)) return;
+  await supabase.from('users').update({ role: newRole }).eq('id', userId);
+  loadAdminUsers();
+}
+
+async function deleteUser(userId){
+  if(!hasPerm('admin', true)) return;
+  if(confirm('Удалить пользователя?')){
+    await supabase.from('users').delete().eq('id', userId);
+    loadAdminUsers();
+  }
+}
 </script>
 
 </body>
