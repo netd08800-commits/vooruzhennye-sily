@@ -320,6 +320,19 @@ table.full .chk-col input[type="checkbox"]{width:16px;height:16px;cursor:pointer
 }
 .diploma-input[readonly]:hover{background:transparent;}
 
+/* Статус подключения */
+.db-status{
+  display:flex;align-items:center;gap:6px;
+  font-size:12px;padding:6px 12px;border-radius:4px;
+}
+.db-status.online{background:#1a3a1a;color:#7cb87a;}
+.db-status.offline{background:#3a1a1a;color:#d88a8a;}
+.db-status-dot{
+  width:8px;height:8px;border-radius:50%;
+}
+.db-status.online .db-status-dot{background:#7cb87a;box-shadow:0 0 6px #7cb87a;}
+.db-status.offline .db-status-dot{background:#d88a8a;}
+
 @media (max-width:1100px){.diploma-container{transform:scale(0.85);transform-origin:top center;}}
 @media (max-width:768px){.diploma-container{transform:scale(0.65);}}
 
@@ -336,8 +349,9 @@ table.full .chk-col input[type="checkbox"]{width:16px;height:16px;cursor:pointer
   .mil-header,.gold-strip,.mil-nav,.mil-footer,
   .ld-toolbar,.welcome-banner,.dashboard,.info-bar,
   .section:not(.active),.diplomas-header,.diploma-filters,
-  .diploma-grid,.diploma-card,.diploma-type-section{display:none!important;}
-  .section.active > *:not(.diploma-container){display:none!important;}
+  .diploma-grid,.diploma-card,.diploma-type-section,.db-status{display:none!important;}
+  .section.active > *:not(.page):not(.page-flex):not(.diploma-container){display:none!important;}
+  .page,.page-flex{margin:0;box-shadow:none;page-break-after:always;}
   .diploma-container{
     box-shadow:none!important;max-width:100%!important;
     margin:0!important;transform:none!important;
@@ -367,7 +381,10 @@ table.full .chk-col input[type="checkbox"]{width:16px;height:16px;cursor:pointer
     </div>
     <div class="mil-header-right">
       <div class="date-display" id="headerDate"></div>
-      <div class="status-badge">● система активна</div>
+      <div id="dbStatus" class="db-status offline">
+        <span class="db-status-dot"></span>
+        <span id="dbStatusText">Подключение к базе...</span>
+      </div>
     </div>
   </div>
 </div>
@@ -395,6 +412,7 @@ table.full .chk-col input[type="checkbox"]{width:16px;height:16px;cursor:pointer
       <div class="info-chip">Пользователь: <span>Администратор</span></div>
       <div class="info-chip">Уровень доступа: <span>Полный</span></div>
       <div class="info-chip">Последний вход: <span id="lastLogin"></span></div>
+      <div class="info-chip">База данных: <span id="dbMode">—</span></div>
     </div>
     <div class="dashboard">
       <div class="dash-card" onclick="switchTab('ld',document.querySelectorAll('.mil-nav-btn')[1])">
@@ -445,7 +463,47 @@ table.full .chk-col input[type="checkbox"]{width:16px;height:16px;cursor:pointer
   <p>© Министерство обороны Региональной Федерации — Единая информационная система | Все права защищены</p>
 </div>
 
+<!-- ========== SUPABASE SDK ========== -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script>
+/* 🔗 ВСТАВЬ СВОИ ДАННЫЕ ИЗ SUPABASE */
+const SUPABASE_URL = 'https://ТВОЙ_ПРОЕКТ.supabase.co';
+const SUPABASE_ANON_KEY = 'ТВОЙ_PUBLISHABLE_KEY';
+
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let cases = [];
+let diplomas = [];
+
+// Проверка подключения
+supabase.auth.getUser().then(() => {
+  document.getElementById('dbStatus').className = 'db-status online';
+  document.getElementById('dbStatusText').textContent = '● Supabase подключен';
+  document.getElementById('dbMode').textContent = 'Облако (Supabase)';
+}).catch(() => {
+  document.getElementById('dbStatus').className = 'db-status offline';
+  document.getElementById('dbStatusText').textContent = '○ Нет соединения';
+  document.getElementById('dbMode').textContent = 'Локально';
+});
+
+// Загрузка данных
+async function loadData(){
+  const { data: c, error: e1 } = await supabase.from('cases').select('*');
+  const { data: d, error: e2 } = await supabase.from('diplomas').select('*');
+  if(!e1 && c) cases = c;
+  if(!e2 && d) diplomas = d;
+  updateCounters();
+  if(document.getElementById('sec-ld').classList.contains('active')) renderCasesList();
+  if(document.getElementById('sec-diplomas').classList.contains('active')) renderDiplomaList();
+}
+
+// Подписка на изменения (Real-time)
+supabase.channel('public-db')
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'cases' }, loadData)
+  .on('postgres_changes', { event: '*', schema: 'public', table: 'diplomas' }, loadData)
+  .subscribe();
+
 /* ========== НАВИГАЦИЯ ========== */
 function switchTab(id, btn){
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
@@ -453,7 +511,7 @@ function switchTab(id, btn){
   document.getElementById('sec-'+id).classList.add('active');
   if(btn) btn.classList.add('active');
   if(id==='ld') homeLD();
-  if(id==='diplomas') initDiplomas();
+  if(id==='diplomas') renderDiplomaList();
 }
 
 /* ========== ДАТА В ШАПКЕ ========== */
@@ -468,16 +526,8 @@ function switchTab(id, btn){
 })();
 
 /* ==========================================================
-   ЛИЧНЫЕ ДЕЛА
+   УТИЛИТЫ
    ========================================================== */
-let cases = JSON.parse(localStorage.getItem("cases") || "[]");
-
-function saveAll(){
-  localStorage.setItem("cases", JSON.stringify(cases));
-  localStorage.setItem("diplomas", JSON.stringify(diplomas));
-  updateCounters();
-}
-
 function updateCounters(){
   const cc = document.getElementById('caseCount');
   const dc = document.getElementById('diplomaCount');
@@ -485,60 +535,84 @@ function updateCounters(){
   if(dc) dc.textContent = diplomas.length;
 }
 
+/* ==========================================================
+   ЛИЧНЫЕ ДЕЛА + 🔍 ПОИСК
+   ========================================================== */
 const ldApp = document.getElementById('ldApp');
 
 function homeLD(){
   ldApp.innerHTML = `
     <h2>📋 Личные дела военнослужащих</h2>
+    <div class="ld-toolbar" style="margin-bottom:15px;">
+      <input type="text" id="caseSearch" placeholder="🔍 Поиск по названию..." oninput="renderCasesList()">
+    </div>
     <button class="btn-create" onclick="createCase()">+ Создать дело</button>
     <hr>
-    ${cases.length===0?'<p style="color:#6a7a5e;margin-top:15px;">Нет созданных дел. Нажмите «Создать дело» для начала работы.</p>':''}
-    ${cases.map((c,i)=>`
-      <div class="case-item">
-        <b>📁 ${c.title}</b>
-        <button class="btn btn-open" onclick="openCase(${i})">Открыть</button>
-        <button class="btn btn-edit" onclick="renameCase(${i})">✏️</button>
-        <button class="btn btn-del" onclick="deleteCase(${i})">🗑</button>
-      </div>`).join("")}
+    <div id="casesList"></div>
   `;
+  renderCasesList();
 }
 
-function createCase(){
-  cases.push({ title: "Новое дело", data: {} });
-  saveAll(); homeLD();
+function renderCasesList(){
+  const container = document.getElementById('casesList');
+  if(!container) return;
+  const search = document.getElementById('caseSearch')?.value.toLowerCase() || '';
+  const filtered = cases.filter(c => (c.title || '').toLowerCase().includes(search));
+
+  if(filtered.length === 0){
+    container.innerHTML = `<p style="color:#6a7a5e;margin-top:15px;">${cases.length === 0 ? 'Нет созданных дел. Нажмите «Создать дело» для начала работы.' : 'Ничего не найдено по запросу.'}</p>`;
+    return;
+  }
+
+  container.innerHTML = filtered.map(c => `
+    <div class="case-item">
+      <b>📁 ${c.title}</b>
+      <button class="btn btn-open" onclick="openCase('${c.id}')">Открыть</button>
+      <button class="btn btn-edit" onclick="renameCase('${c.id}')">✏️</button>
+      <button class="btn btn-del" onclick="deleteCase('${c.id}')">🗑</button>
+    </div>
+  `).join('');
 }
 
-function deleteCase(i){
-  if(confirm("Удалить дело «"+cases[i].title+"»?")){
-    cases.splice(i,1); saveAll(); homeLD();
+async function createCase(){
+  const id = 'case_' + Date.now();
+  await supabase.from('cases').insert([{ id, title: "Новое дело", data: {} }]);
+}
+
+async function deleteCase(id){
+  if(confirm("Удалить дело «"+cases.find(c=>c.id===id)?.title+"»?")){
+    await supabase.from('cases').delete().eq('id', id);
   }
 }
 
-function renameCase(i){
-  let t = prompt("Название дела:", cases[i].title);
-  if(t){ cases[i].title = t; saveAll(); homeLD(); }
+async function renameCase(id){
+  let t = prompt("Название дела:", cases.find(c=>c.id===id)?.title || '');
+  if(t){
+    await supabase.from('cases').update({ title: t }).eq('id', id);
+  }
 }
 
-function openCase(i){
-  let c = cases[i], d = c.data || {};
+function openCase(id){
+  const c = cases.find(x=>x.id===id);
+  if(!c) return;
+  const d = c.data || {};
   ldApp.innerHTML = `
     <div class="ld-toolbar">
       <button class="btn-back" onclick="homeLD()">← Назад к списку</button>
-      <input value="${c.title}" onchange="cases[${i}].title=this.value;saveAll()">
-      <button class="btn-save" onclick="saveCase(${i})">💾 Сохранить</button>
+      <input value="${c.title}" onchange="supabase.from('cases').update({title:this.value}).eq('id','${id}')">
+      <button class="btn-save" onclick="saveCase('${id}')">💾 Сохранить</button>
     </div>
     ${cover(d)}${disc(d)}${reward(d)}
   `;
 }
 
-function saveCase(i){
+async function saveCase(id){
   let data = {};
   document.querySelectorAll("[data-key]").forEach(el => {
     if(el.type === "checkbox") data[el.dataset.key] = el.checked;
     else data[el.dataset.key] = el.innerText;
   });
-  cases[i].data = { ...cases[i].data, ...data };
-  saveAll();
+  await supabase.from('cases').update({ data: data }).eq('id', id);
   alert("Сохранено ✓");
 }
 
@@ -639,13 +713,7 @@ const DIPLOMA_TEMPLATES = {
   'Диплом о среднем профессиональном образовании': 'https://s10.iimage.su/s/01/gZLrmfCxrezlo9wOzzI94NwkfjoO7oSCcKQFpGXdU.png'
 };
 
-let diplomas = JSON.parse(localStorage.getItem('diplomas') || '[]');
 let currentDiplomaIdx = null;
-
-function initDiplomas(){
-  renderDiplomaList();
-  updateCounters();
-}
 
 function renderDiplomaList(){
   const container = document.getElementById('diplomaList');
@@ -683,16 +751,15 @@ function renderDiplomaList(){
         <h3>${type}</h3>
         <div class="diploma-grid">
           ${grouped[type].map(d => {
-            const idx = diplomas.indexOf(d);
             return `
               <div class="diploma-card">
                 <h4>🎓 ${d.title || 'Без названия'}</h4>
                 <p><b>Дата:</b> ${d.date || '—'}</p>
                 <div class="card-actions">
-                  <button class="btn btn-view" onclick="viewDiploma(${idx})">👁 Просмотр</button>
-                  <button class="btn btn-edit" onclick="editDiploma(${idx})">✏️</button>
-                  <button class="btn btn-print" onclick="printDiploma(${idx})">🖨</button>
-                  <button class="btn btn-del" onclick="deleteDiploma(${idx})">🗑</button>
+                  <button class="btn btn-view" onclick="viewDiploma('${d.id}')">👁 Просмотр</button>
+                  <button class="btn btn-edit" onclick="editDiploma('${d.id}')">✏️</button>
+                  <button class="btn btn-print" onclick="printDiploma('${d.id}')">🖨</button>
+                  <button class="btn btn-del" onclick="deleteDiploma('${d.id}')">🗑</button>
                 </div>
               </div>`;
           }).join('')}
@@ -703,23 +770,25 @@ function renderDiplomaList(){
   container.innerHTML = html;
 }
 
-function createDiploma(){
-  diplomas.push({
+async function createDiploma(){
+  const id = 'dip_' + Date.now();
+  await supabase.from('diplomas').insert([{
+    id: id,
     title: 'Новый диплом',
     date: new Date().toLocaleDateString('ru-RU'),
     type: 'Диплом о высшем образовании магистратура',
     fields: {}
-  });
-  saveAll();
-  editDiploma(diplomas.length - 1);
+  }]);
+  setTimeout(() => editDiploma(id), 200);
 }
 
-function viewDiploma(index){
-  const d = diplomas[index];
+function viewDiploma(id){
+  const d = diplomas.find(x=>x.id===id);
+  if(!d) return;
   document.getElementById('diplomaList').style.display = 'none';
   const editor = document.getElementById('diplomaEditor');
   editor.style.display = 'block';
-  currentDiplomaIdx = index;
+  currentDiplomaIdx = id;
   
   const bgUrl = DIPLOMA_TEMPLATES[d.type] || DIPLOMA_TEMPLATES['Диплом о высшем образовании магистратура'];
   
@@ -738,12 +807,13 @@ function viewDiploma(index){
   `;
 }
 
-function editDiploma(index){
-  const d = diplomas[index];
+function editDiploma(id){
+  const d = diplomas.find(x=>x.id===id);
+  if(!d) return;
   document.getElementById('diplomaList').style.display = 'none';
   const editor = document.getElementById('diplomaEditor');
   editor.style.display = 'block';
-  currentDiplomaIdx = index;
+  currentDiplomaIdx = id;
   
   const bgUrl = DIPLOMA_TEMPLATES[d.type] || DIPLOMA_TEMPLATES['Диплом о высшем образовании магистратура'];
   
@@ -801,34 +871,36 @@ function generateDiplomaInputs(fields, readonly){
   return positions.map(p => 
     `<input type="text" class="diploma-input" 
             style="top:${p.top};left:${p.left};width:${p.width};height:3.5%" 
-            data-key="${p.key}" value="${fields[p.key]||''}" ${readonly ? 'readonly' : ''}>`
+            data-key="${p.key}" value="${(fields && fields[p.key])||''}" ${readonly ? 'readonly' : ''}>`
   ).join('');
 }
 
-function saveDiploma(){
-  if(currentDiplomaIdx === null) return;
-  const d = diplomas[currentDiplomaIdx];
+async function saveDiploma(){
+  if(!currentDiplomaIdx) return;
+  const d = diplomas.find(x=>x.id===currentDiplomaIdx);
+  if(!d) return;
   
   const titleInput = document.getElementById('diplomaTitleInput');
   const typeInput = document.getElementById('diplomaTypeInput');
-  if(titleInput) d.title = titleInput.value;
-  if(typeInput) d.type = typeInput.value;
-  d.date = d.date || new Date().toLocaleDateString('ru-RU');
   
+  const updateData = {};
+  if(titleInput) updateData.title = titleInput.value;
+  if(typeInput) updateData.type = typeInput.value;
+  updateData.date = d.date || new Date().toLocaleDateString('ru-RU');
+  
+  const fieldsData = {};
   document.querySelectorAll('.diploma-input[data-key]').forEach(inp => {
-    const key = inp.dataset.key;
-    d.fields[key] = inp.value;
+    fieldsData[inp.dataset.key] = inp.value;
   });
+  updateData.fields = fieldsData;
   
-  saveAll();
-  renderDiplomaList();
+  await supabase.from('diplomas').update(updateData).eq('id', currentDiplomaIdx);
   alert("✅ Диплом сохранён");
 }
 
-function deleteDiploma(index){
-  if(confirm("Удалить диплом «"+diplomas[index].title+"»?")){
-    diplomas.splice(index, 1);
-    saveAll();
+async function deleteDiploma(id){
+  if(confirm("Удалить диплом «"+diplomas.find(d=>d.id===id)?.title+"»?")){
+    await supabase.from('diplomas').delete().eq('id', id);
     backToDiplomaList();
   }
 }
@@ -839,13 +911,13 @@ function backToDiplomaList(){
   renderDiplomaList();
 }
 
-function printDiploma(index){
-  editDiploma(index);
+function printDiploma(id){
+  editDiploma(id);
   setTimeout(() => window.print(), 200);
 }
 
 // Инициализация
-updateCounters();
+loadData();
 </script>
 
 </body>
