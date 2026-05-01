@@ -199,7 +199,7 @@ table.full thead th{background:#f0f0f0;text-align:center;}
 
 <script>
 // ==========================================
-// 🔑 ВСТАВЬ СЮДА СВОИ ДАННЫЕ!
+// ✅ ТВОИ КЛЮЧИ JSONBIN
 // ==========================================
 const BIN_ID = '69f500f636566621a81494d2';
 const MASTER_KEY = '$2a$10$l.sdu6Gg3YuyoTewb87wYuRkmvHBIjFkhibxhCq9KCP6/WNNM5uSm';
@@ -214,6 +214,7 @@ let users = [];
 
 document.addEventListener('DOMContentLoaded', function(){
   console.log('✅ Страница загружена');
+  console.log('🔑 Bin ID:', BIN_ID);
   initDate();
   checkAuth();
   document.getElementById('loginForm').onsubmit = handleLogin;
@@ -227,38 +228,46 @@ function initDate(){
   document.getElementById('headerDate').textContent = n.getDate()+' '+m[n.getMonth()]+' '+n.getFullYear();
 }
 
-// ========== ГЛАВНАЯ ФУНКЦИЯ ЗАГРУЗКИ ==========
 async function forceLoadUsers(){
-  console.log('🔄 Принудительная загрузка...');
+  console.log('🔄 Загрузка данных...');
   document.getElementById('dbStatus').textContent = '● Загрузка...';
   document.getElementById('dbStatus').style.color = '#d4af37';
   
   try {
     const res = await fetch(API_URL, { headers: { 'X-Master-Key': MASTER_KEY } });
+    console.log('📡 Ответ сервера:', res.status);
+    
     if(!res.ok) throw new Error('HTTP '+res.status);
     
     const json = await res.json();
-    const data = json.record || {};
+    console.log('📦 Получены данные:', json);
     
+    const data = json.record || {};
     users = data.users || [];
     cases = data.cases || [];
     diplomas = data.diplomas || [];
     
-    console.log('📦 Данные:', {users: users.length, cases: cases.length, diplomas: diplomas.length});
+    console.log('👥 Пользователей:', users.length);
+    console.log('📋 Дел:', cases.length);
+    console.log('🎓 Дипломов:', diplomas.length);
     
     localStorage.setItem('site_data', JSON.stringify({ cases, diplomas, users }));
     document.getElementById('caseCount').textContent = cases.length;
     document.getElementById('diplomaCount').textContent = diplomas.length;
     
-    // ГЛАВНОЕ ИСПРАВЛЕНИЕ: всегда рендерим админку
     renderAdminUsersDirect();
     
     document.getElementById('dbStatus').textContent = '● Онлайн';
     document.getElementById('dbStatus').style.color = '#7cb87a';
+    
+    if(users.length === 0){
+      document.getElementById('adminUsersList').innerHTML = '<p style="color:#d4af37;padding:10px;">⚠️ Нет пользователей. Создай первого!</p>';
+    }
   } catch(err){
-    console.error('❌ Ошибка:', err);
+    console.error('❌ Ошибка загрузки:', err);
     document.getElementById('dbStatus').textContent = '● Ошибка';
     document.getElementById('dbStatus').style.color = '#d88a8a';
+    document.getElementById('adminUsersList').innerHTML = '<p style="color:#d88a8a;padding:10px;">❌ Ошибка: '+err.message+'</p>';
   }
 }
 
@@ -283,12 +292,14 @@ async function saveToCloud(){
       headers: { 'Content-Type': 'application/json', 'X-Master-Key': MASTER_KEY },
       body: JSON.stringify({ cases, diplomas, users })
     });
-  } catch(err){}
+    console.log('✅ Сохранено в облако');
+  } catch(err){
+    console.error('❌ Ошибка сохранения:', err);
+  }
 }
 
-// ========== ПРЯМОЙ РЕНДЕР АДМИНКИ (БЕЗ ПРОВЕРОК) ==========
 function renderAdminUsersDirect(){
-  console.log('🎨 Рендер админки. Пользователей:', users.length);
+  console.log('🎨 Рендер админки...');
   const list = document.getElementById('adminUsersList');
   
   if(!users || users.length === 0){
@@ -457,7 +468,6 @@ async function deleteUser(id){
   renderAdminUsersDirect();
 }
 
-// ========== ОСТАЛЬНОЕ ==========
 function homeLD(){
   document.getElementById('ldApp').innerHTML = '<h2>📋 Личные дела</h2><div class="ld-toolbar"><input type="text" id="caseSearch" placeholder="🔍 Поиск..." oninput="renderCasesList()"></div><button class="btn-create" onclick="createCase()">+ Создать</button><hr><div id="casesList"></div>';
   renderCasesList();
