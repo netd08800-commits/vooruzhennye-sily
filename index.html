@@ -61,6 +61,7 @@ body{background:#1a1f2b;font-family:'Segoe UI',Arial,sans-serif;color:#e0e0e0;mi
 .btn-save{background:linear-gradient(135deg,#8b7d3c,#d4af37);color:#1a1a0a;padding:10px 20px;border-radius:4px;cursor:pointer;font-weight:700;}
 .btn-print{background:#1a3a5a;color:#a0c8e8;}
 .btn-view{background:#3a2a1a;color:#d4af37;}
+.btn-refresh{background:#3a3a1a;color:#d4af37;border:1px solid #5a4a2a;padding:8px 12px;font-size:11px;}
 .ld-toolbar{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;}
 .ld-toolbar input{padding:10px;background:#1e2b1c;border:1px solid #2a3a28;border-radius:4px;color:#c8d4b8;}
 .page{width:210mm;min-height:297mm;background:white;margin:20px auto;padding:20mm;font-family:"Times New Roman",serif;color:#000;position:relative;}
@@ -182,7 +183,10 @@ table.full thead th{background:#f0f0f0;text-align:center;}
   </div>
   <div class="section" id="sec-admin">
     <div class="admin-panel">
-      <h3>⚙ Управление пользователями</h3>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
+        <h3 style="margin:0;">⚙ Управление пользователями</h3>
+        <button class="btn btn-refresh" onclick="refreshAdminData()">🔄 Обновить список</button>
+      </div>
       <div class="admin-form">
         <input type="text" id="newUsername" placeholder="Имя пользователя">
         <input type="password" id="newPassword" placeholder="Пароль">
@@ -230,6 +234,7 @@ document.addEventListener('DOMContentLoaded', function(){
   checkAuth();
   document.getElementById('loginForm').addEventListener('submit', handleLogin);
   document.getElementById('registerForm').addEventListener('submit', handleRegister);
+  // Авто-синхронизация каждые 10 секунд
   syncTimer = setInterval(loadData, 10000);
 });
 
@@ -239,7 +244,7 @@ function initDate(){
   document.getElementById('headerDate').textContent = n.getDate()+' '+m[n.getMonth()]+' '+n.getFullYear();
 }
 
-// ========== ЗАГРУЗКА/СОХРАНЕНИЕ (СТАБИЛЬНАЯ ВЕРСИЯ) ==========
+// ========== ЗАГРУЗКА/СОХРАНЕНИЕ ==========
 async function loadData(){
   try {
     const res = await fetch(API_URL, { headers: { 'X-Master-Key': MASTER_KEY } });
@@ -256,20 +261,20 @@ async function loadData(){
     document.getElementById('dbStatus').style.color = '#7cb87a';
     
     updateCounters();
+    // Обновляем текущую вкладку, если она открыта
     if(document.getElementById('sec-ld').classList.contains('active')) renderCasesList();
     if(document.getElementById('sec-diplomas').classList.contains('active')) renderDiplomaList();
     if(document.getElementById('sec-admin').classList.contains('active')) renderAdminUsers();
   } catch(err){
-    console.warn('⚠️ База недоступна, работаем локально:', err);
+    console.warn('⚠️ База недоступна:', err);
     dbLoaded = false;
-    document.getElementById('dbStatus').textContent = '● Офлайн режим';
+    document.getElementById('dbStatus').textContent = '● Ошибка';
     document.getElementById('dbStatus').style.color = '#d88a8a';
-    // Не ломаем приложение, оставляем текущие данные
   }
 }
 
 async function saveData(){
-  if(!dbLoaded) { alert('База данных недоступна. Проверьте интернет и ключи.'); return; }
+  if(!dbLoaded) { alert('База данных недоступна. Проверьте ключи.'); return; }
   try {
     await fetch(API_URL, {
       method: 'PUT',
@@ -279,7 +284,7 @@ async function saveData(){
     console.log('✅ Сохранено');
   } catch(err){
     console.error('❌ Ошибка сохранения:', err);
-    alert('Не удалось сохранить в облако. Проверьте ключи.');
+    alert('Не удалось сохранить в облако.');
   }
 }
 
@@ -306,7 +311,6 @@ async function handleLogin(e){
     return;
   }
   
-  // Загружаем данные, но не блокируем интерфейс, если сеть упала
   try { await loadData(); } catch(err){}
   
   const found = users.find(u => u.username === user && u.password === pass);
@@ -330,7 +334,6 @@ async function handleRegister(e){
   if(pass.length < 6){ showError('Пароль должен быть ≥ 6 символов'); return; }
   
   try { await loadData(); } catch(err){}
-  
   if(users.find(u => u.username === user)){ showError('Пользователь уже существует'); return; }
   
   const newUser = { id: 'u'+Date.now(), username: user, password: pass, role: 'Гражданский' };
@@ -353,7 +356,7 @@ function completeLogin(){
   document.getElementById('userDisplay').textContent = currentUser.username;
   localStorage.setItem('mil_user', JSON.stringify(currentUser));
   updateUI();
-  loadData(); // Фоновая загрузка данных после входа
+  loadData();
 }
 
 function checkAuth(){
@@ -396,16 +399,30 @@ function hasPerm(type, action){
   return p[type] && p[type][action];
 }
 
-function switchTab(tab){
+// ========== НАВИГАЦИЯ (ИСПРАВЛЕННАЯ) ==========
+async function switchTab(tab){
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.mil-nav-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('sec-'+tab).classList.add('active');
   if(event && event.target) event.target.classList.add('active');
   
-  // Просто рисуем из локального кэша, сеть обновит сама
-  if(tab === 'ld') homeLD();
-  if(tab === 'diplomas') renderDiplomaList();
-  if(tab === 'admin') renderAdminUsers();
+  // ИСПРАВЛЕНИЕ: Для админки ждем загрузку данных перед отрисовкой
+  if(tab === 'admin') {
+    await loadData();
+    renderAdminUsers();
+  } else if(tab === 'ld') {
+    await loadData();
+    homeLD();
+  } else if(tab === 'diplomas') {
+    await loadData();
+    renderDiplomaList();
+  }
+}
+
+// Функция ручного обновления для админки
+async function refreshAdminData(){
+  await loadData();
+  renderAdminUsers();
 }
 
 function updateCounters(){
@@ -419,8 +436,11 @@ function renderAdminUsers(){
   const list = document.getElementById('adminUsersList');
   if(!list) return;
   
+  // Отладка в консоль
+  console.log('📊 Рендер админки. Пользователей в массиве:', users.length);
+  
   if(!users.length){
-    list.innerHTML = '<p style="color:#6a7a5e;padding:10px;">Нет пользователей</p>';
+    list.innerHTML = '<p style="color:#6a7a5e;padding:10px;">Нет зарегистрированных пользователей</p>';
     return;
   }
   
@@ -447,7 +467,7 @@ async function adminCreateUser(){
   
   if(u.length<3 || p.length<6){ alert('Логин ≥3, Пароль ≥6'); return; }
   
-  try { await loadData(); } catch(err){}
+  await loadData(); // Загружаем свежие данные
   if(users.find(x => x.username === u)){ alert('Такой пользователь уже есть'); return; }
   
   users.push({id:'u'+Date.now(), username:u, password:p, role:r});
@@ -503,7 +523,7 @@ function renderCasesList(){
 
 async function createCase(){
   if(!hasPerm('cases','create')) return;
-  cases.push({id:'c'+Date.now(), title:'Новое дело', data:{}}); // ИСПРАВЛЕНО: добавлено data:
+  cases.push({id:'c'+Date.now(), title:'Новое дело', data:{}});
   await saveData();
   renderCasesList();
 }
