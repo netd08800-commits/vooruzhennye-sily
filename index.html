@@ -158,7 +158,7 @@ table.full thead th{background:#f0f0f0;text-align:center;}
     <div class="info-bar">
       <div class="info-chip">Пользователь: <span id="infoUser">—</span></div>
       <div class="info-chip">Роль: <span id="infoRole">—</span></div>
-      <div class="info-chip">База: <span style="color:#7cb87a;">● JSONBin</span></div>
+      <div class="info-chip">База: <span id="dbStatus" style="color:#7cb87a;">● Загрузка...</span></div>
     </div>
     <div class="dashboard">
       <div class="dash-card" onclick="switchTab('ld')" id="dashLd"><div class="card-icon">📋</div><h3>Личные дела</h3><p>Общая база для всех</p><div class="card-num" id="caseCount">0</div></div>
@@ -213,6 +213,7 @@ let cases = [];
 let diplomas = [];
 let users = [];
 let syncTimer = null;
+let dbLoaded = false;
 
 const ROLES = {
   'Гражданский': {cases:{view:false,create:false,edit:false,delete:false}, diplomas:{view:false,create:false,edit:false,delete:false}, admin:false},
@@ -229,7 +230,6 @@ document.addEventListener('DOMContentLoaded', function(){
   checkAuth();
   document.getElementById('loginForm').addEventListener('submit', handleLogin);
   document.getElementById('registerForm').addEventListener('submit', handleRegister);
-  // Авто-синхронизация каждые 10 секунд
   syncTimer = setInterval(loadData, 10000);
 });
 
@@ -239,11 +239,11 @@ function initDate(){
   document.getElementById('headerDate').textContent = n.getDate()+' '+m[n.getMonth()]+' '+n.getFullYear();
 }
 
-// ========== ЗАГРУЗКА/СОХРАНЕНИЕ В JSONBIN ==========
+// ========== ЗАГРУЗКА/СОХРАНЕНИЕ (СТАБИЛЬНАЯ ВЕРСИЯ) ==========
 async function loadData(){
   try {
     const res = await fetch(API_URL, { headers: { 'X-Master-Key': MASTER_KEY } });
-    if(!res.ok) throw new Error('Bin not found');
+    if(!res.ok) throw new Error('Network error');
     const json = await res.json();
     const data = json.record || {};
     
@@ -251,28 +251,35 @@ async function loadData(){
     diplomas = data.diplomas || [];
     users = data.users || [];
     
-    updateCounters();
+    dbLoaded = true;
+    document.getElementById('dbStatus').textContent = '● Подключено';
+    document.getElementById('dbStatus').style.color = '#7cb87a';
     
-    // Обновляем текущую вкладку
+    updateCounters();
     if(document.getElementById('sec-ld').classList.contains('active')) renderCasesList();
     if(document.getElementById('sec-diplomas').classList.contains('active')) renderDiplomaList();
     if(document.getElementById('sec-admin').classList.contains('active')) renderAdminUsers();
   } catch(err){
-    console.error('❌ Ошибка загрузки:', err);
+    console.warn('⚠️ База недоступна, работаем локально:', err);
+    dbLoaded = false;
+    document.getElementById('dbStatus').textContent = '● Офлайн режим';
+    document.getElementById('dbStatus').style.color = '#d88a8a';
+    // Не ломаем приложение, оставляем текущие данные
   }
 }
 
 async function saveData(){
+  if(!dbLoaded) { alert('База данных недоступна. Проверьте интернет и ключи.'); return; }
   try {
     await fetch(API_URL, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', 'X-Master-Key': MASTER_KEY },
       body: JSON.stringify({ cases, diplomas, users })
     });
-    console.log('✅ Данные сохранены');
+    console.log('✅ Сохранено');
   } catch(err){
     console.error('❌ Ошибка сохранения:', err);
-    alert('Ошибка синхронизации с базой');
+    alert('Не удалось сохранить в облако. Проверьте ключи.');
   }
 }
 
@@ -299,7 +306,9 @@ async function handleLogin(e){
     return;
   }
   
-  await loadData(); // Загружаем список пользователей перед проверкой
+  // Загружаем данные, но не блокируем интерфейс, если сеть упала
+  try { await loadData(); } catch(err){}
+  
   const found = users.find(u => u.username === user && u.password === pass);
   if(found){
     currentUser = found;
@@ -320,7 +329,8 @@ async function handleRegister(e){
   if(user.length < 3){ showError('Имя должно быть ≥ 3 символов'); return; }
   if(pass.length < 6){ showError('Пароль должен быть ≥ 6 символов'); return; }
   
-  await loadData();
+  try { await loadData(); } catch(err){}
+  
   if(users.find(u => u.username === user)){ showError('Пользователь уже существует'); return; }
   
   const newUser = { id: 'u'+Date.now(), username: user, password: pass, role: 'Гражданский' };
@@ -343,7 +353,7 @@ function completeLogin(){
   document.getElementById('userDisplay').textContent = currentUser.username;
   localStorage.setItem('mil_user', JSON.stringify(currentUser));
   updateUI();
-  loadData();
+  loadData(); // Фоновая загрузка данных после входа
 }
 
 function checkAuth(){
@@ -392,14 +402,10 @@ function switchTab(tab){
   document.getElementById('sec-'+tab).classList.add('active');
   if(event && event.target) event.target.classList.add('active');
   
-  // ИСПРАВЛЕНИЕ: Принудительно загружаем данные перед отрисовкой
-  if(tab === 'admin') {
-    loadData().then(() => renderAdminUsers());
-  } else if(tab === 'ld') {
-    loadData().then(() => homeLD());
-  } else if(tab === 'diplomas') {
-    loadData().then(() => renderDiplomaList());
-  }
+  // Просто рисуем из локального кэша, сеть обновит сама
+  if(tab === 'ld') homeLD();
+  if(tab === 'diplomas') renderDiplomaList();
+  if(tab === 'admin') renderAdminUsers();
 }
 
 function updateCounters(){
@@ -407,15 +413,14 @@ function updateCounters(){
   document.getElementById('diplomaCount').textContent = diplomas.length;
 }
 
-// ========== АДМИНКА (ПОЛЬЗОВАТЕЛИ) ==========
+// ========== АДМИНКА ==========
 function renderAdminUsers(){
   if(!hasPerm('admin',true)) return;
   const list = document.getElementById('adminUsersList');
   if(!list) return;
   
-  // Если данных нет, показываем сообщение
-  if(!users || users.length === 0){
-    list.innerHTML = '<p style="color:#6a7a5e;padding:10px;">Нет пользователей в базе</p>';
+  if(!users.length){
+    list.innerHTML = '<p style="color:#6a7a5e;padding:10px;">Нет пользователей</p>';
     return;
   }
   
@@ -442,9 +447,7 @@ async function adminCreateUser(){
   
   if(u.length<3 || p.length<6){ alert('Логин ≥3, Пароль ≥6'); return; }
   
-  // ИСПРАВЛЕНИЕ: Убедимся, что у нас свежие данные
-  await loadData();
-  
+  try { await loadData(); } catch(err){}
   if(users.find(x => x.username === u)){ alert('Такой пользователь уже есть'); return; }
   
   users.push({id:'u'+Date.now(), username:u, password:p, role:r});
@@ -500,7 +503,7 @@ function renderCasesList(){
 
 async function createCase(){
   if(!hasPerm('cases','create')) return;
-  cases.push({id:'c'+Date.now(), title:'Новое дело',  {}});
+  cases.push({id:'c'+Date.now(), title:'Новое дело', data:{}}); // ИСПРАВЛЕНО: добавлено data:
   await saveData();
   renderCasesList();
 }
