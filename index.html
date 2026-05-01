@@ -209,6 +209,8 @@ table.full thead th{background:#f0f0f0;text-align:center;}
 <div class="mil-footer"><p>© Министерство обороны РФ | JSONBin Cloud</p></div>
 
 <script>
+console.log('✅ Скрипт загружен успешно');
+
 // ==========================================
 // 🔑 ВСТАВЬ СЮДА ДАННЫЕ ИЗ JSONBIN.IO
 // ==========================================
@@ -543,7 +545,8 @@ function renderCasesList(){
 
 async function createCase(){
   if(!hasPerm('cases','create')) return;
-  cases.push({id:'c'+Date.now(), title:'Новое дело', {}});
+  // ИСПРАВЛЕНИЕ: добавлено свойство 'data:'
+  cases.push({id:'c'+Date.now(), title:'Новое дело', data:{}});
   saveToCloud();
   renderCasesList();
 }
