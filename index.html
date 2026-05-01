@@ -229,7 +229,8 @@ document.addEventListener('DOMContentLoaded', function(){
   checkAuth();
   document.getElementById('loginForm').addEventListener('submit', handleLogin);
   document.getElementById('registerForm').addEventListener('submit', handleRegister);
-  syncTimer = setInterval(loadData, 8000);
+  // Авто-синхронизация каждые 10 секунд
+  syncTimer = setInterval(loadData, 10000);
 });
 
 function initDate(){
@@ -242,7 +243,7 @@ function initDate(){
 async function loadData(){
   try {
     const res = await fetch(API_URL, { headers: { 'X-Master-Key': MASTER_KEY } });
-    if(!res.ok) throw new Error('Bin not found or key invalid');
+    if(!res.ok) throw new Error('Bin not found');
     const json = await res.json();
     const data = json.record || {};
     
@@ -251,9 +252,11 @@ async function loadData(){
     users = data.users || [];
     
     updateCounters();
+    
+    // Обновляем текущую вкладку
     if(document.getElementById('sec-ld').classList.contains('active')) renderCasesList();
     if(document.getElementById('sec-diplomas').classList.contains('active')) renderDiplomaList();
-    if(currentUser && hasPerm('admin',true)) renderAdminUsers();
+    if(document.getElementById('sec-admin').classList.contains('active')) renderAdminUsers();
   } catch(err){
     console.error('❌ Ошибка загрузки:', err);
   }
@@ -266,6 +269,7 @@ async function saveData(){
       headers: { 'Content-Type': 'application/json', 'X-Master-Key': MASTER_KEY },
       body: JSON.stringify({ cases, diplomas, users })
     });
+    console.log('✅ Данные сохранены');
   } catch(err){
     console.error('❌ Ошибка сохранения:', err);
     alert('Ошибка синхронизации с базой');
@@ -295,7 +299,7 @@ async function handleLogin(e){
     return;
   }
   
-  await loadData();
+  await loadData(); // Загружаем список пользователей перед проверкой
   const found = users.find(u => u.username === user && u.password === pass);
   if(found){
     currentUser = found;
@@ -388,9 +392,14 @@ function switchTab(tab){
   document.getElementById('sec-'+tab).classList.add('active');
   if(event && event.target) event.target.classList.add('active');
   
-  if(tab === 'ld') homeLD();
-  if(tab === 'diplomas') renderDiplomaList();
-  if(tab === 'admin') renderAdminUsers();
+  // ИСПРАВЛЕНИЕ: Принудительно загружаем данные перед отрисовкой
+  if(tab === 'admin') {
+    loadData().then(() => renderAdminUsers());
+  } else if(tab === 'ld') {
+    loadData().then(() => homeLD());
+  } else if(tab === 'diplomas') {
+    loadData().then(() => renderDiplomaList());
+  }
 }
 
 function updateCounters(){
@@ -404,8 +413,9 @@ function renderAdminUsers(){
   const list = document.getElementById('adminUsersList');
   if(!list) return;
   
-  if(users.length === 0){
-    list.innerHTML = '<p style="color:#6a7a5e;">Пока нет зарегистрированных пользователей</p>';
+  // Если данных нет, показываем сообщение
+  if(!users || users.length === 0){
+    list.innerHTML = '<p style="color:#6a7a5e;padding:10px;">Нет пользователей в базе</p>';
     return;
   }
   
@@ -431,7 +441,10 @@ async function adminCreateUser(){
   const r = document.getElementById('newRole').value;
   
   if(u.length<3 || p.length<6){ alert('Логин ≥3, Пароль ≥6'); return; }
+  
+  // ИСПРАВЛЕНИЕ: Убедимся, что у нас свежие данные
   await loadData();
+  
   if(users.find(x => x.username === u)){ alert('Такой пользователь уже есть'); return; }
   
   users.push({id:'u'+Date.now(), username:u, password:p, role:r});
@@ -487,7 +500,7 @@ function renderCasesList(){
 
 async function createCase(){
   if(!hasPerm('cases','create')) return;
-  cases.push({id:'c'+Date.now(), title:'Новое дело', data:{}});
+  cases.push({id:'c'+Date.now(), title:'Новое дело',  {}});
   await saveData();
   renderCasesList();
 }
