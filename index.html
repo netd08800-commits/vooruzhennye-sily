@@ -14,21 +14,32 @@ body{
   min-height:100vh;
 }
 
-/* ========== АВТОРИЗАЦИЯ ========== */
+/* ========== АВТОРИЗАЦИЯ (УЛУЧШЕННАЯ) ========== */
 .auth-overlay{
   position:fixed;top:0;left:0;width:100%;height:100%;
-  background:linear-gradient(135deg,#0a0f08 0%,#1a1f2b 50%,#0a0f08 100%);
+  /* Размытие фона для видимости главной страницы */
+  background:rgba(10, 15, 8, 0.85);
+  backdrop-filter: blur(10px); 
+  -webkit-backdrop-filter: blur(10px);
   display:flex;align-items:center;justify-content:center;
   z-index:9999;
+  transition: opacity 0.3s ease;
 }
-.auth-overlay.hidden{display:none;}
+.auth-overlay.hidden{
+  opacity: 0;
+  pointer-events: none;
+  display:none; /* Финально скрываем */
+}
 
 .auth-card{
   background:linear-gradient(145deg,#1e2b1c,#243222);
   border:2px solid #8b7d3c;border-radius:12px;
   padding:30px;width:100%;max-width:420px;
   box-shadow:0 20px 60px rgba(0,0,0,.5);
+  animation: fadeIn 0.5s ease-out;
 }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+
 .auth-card h2{
   color:#d4af37;font-size:20px;text-align:center;
   margin-bottom:20px;text-transform:uppercase;letter-spacing:2px;
@@ -593,7 +604,7 @@ table.full .chk-col input[type="checkbox"]{width:16px;height:16px;cursor:pointer
 const SUPABASE_URL = 'https://tyuwwumiufltpixqszmk.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_-Nf3QGYuHcF3oTmx4B1qOw_VnHNjoZ-';
 
-// ИСПРАВЛЕНИЕ: Используем другое имя переменной, чтобы избежать конфликта имен
+// ИСПРАВЛЕНИЕ: Используем другое имя переменной, чтобы избежать конфликта имен (ошибка из скриншота)
 const supabaseDB = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ========== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ==========
@@ -764,8 +775,10 @@ async function handleRegister(e){
 }
 
 function completeLogin(){
-  // Скрываем оверлей
-  document.getElementById('authOverlay').classList.add('hidden');
+  // Скрываем оверлей (с анимацией)
+  var overlay = document.getElementById('authOverlay');
+  overlay.classList.add('hidden');
+  setTimeout(() => overlay.style.display = 'none', 300);
   
   // Обновляем инфо в шапке
   document.getElementById('infoUser').textContent = currentUser.username;
@@ -791,7 +804,10 @@ function logout(){
   currentUser = null;
   localStorage.removeItem('mil_user');
   
-  document.getElementById('authOverlay').classList.remove('hidden');
+  var overlay = document.getElementById('authOverlay');
+  overlay.style.display = 'flex';
+  overlay.classList.remove('hidden');
+  
   document.getElementById('loginUsername').value = '';
   document.getElementById('loginPassword').value = '';
   showLogin();
@@ -1007,7 +1023,7 @@ async function saveCase(id){
     if(el.type === "checkbox") data[el.dataset.key] = el.checked;
     else data[el.dataset.key] = el.innerText;
   });
-  await supabaseDB.from('cases').update({ data: data }).eq('id', id);
+  await supabaseDB.from('cases').update({  data }).eq('id', id);
   alert("Сохранено ✓");
 }
 
