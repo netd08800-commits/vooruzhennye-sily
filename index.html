@@ -186,7 +186,14 @@ table.full thead th{background:#f0f0f0;text-align:center;}
       <div class="admin-form">
         <input type="text" id="newUsername" placeholder="Имя пользователя">
         <input type="password" id="newPassword" placeholder="Пароль">
-        <select id="newRole"><option>Гражданский</option><option>ВП</option><option>ВК</option><option>ВА</option><option>К.С.</option><option>Модер</option></select>
+        <select id="newRole">
+          <option value="Гражданский">Гражданский</option>
+          <option value="ВП">ВП</option>
+          <option value="ВК">ВК</option>
+          <option value="ВА">ВА</option>
+          <option value="К.С.">К.С.</option>
+          <option value="Модер">Модер</option>
+        </select>
         <button class="btn-create" onclick="adminCreateUser()">Создать аккаунт</button>
       </div>
       <h4 style="color:#8b7d3c;margin:15px 0 10px;">Список аккаунтов:</h4>
@@ -211,6 +218,23 @@ let currentUser = null;
 let cases = [];
 let diplomas = [];
 let users = [];
+
+// ========== РОЛИ И ПРАВА ==========
+const ROLES = {
+  'Гражданский': {cases:{view:false,create:false,edit:false,delete:false}, diplomas:{view:false,create:false,edit:false,delete:false}, admin:false},
+  'ВП': {cases:{view:true,create:false,edit:true,delete:false}, diplomas:{view:true,create:false,edit:false,delete:false}, admin:false},
+  'ВК': {cases:{view:true,create:true,edit:true,delete:false}, diplomas:{view:true,create:false,edit:false,delete:false}, admin:false},
+  'ВА': {cases:{view:true,create:false,edit:true,delete:false}, diplomas:{view:true,create:true,edit:true,delete:false}, admin:false},
+  'К.С.': {cases:{view:true,create:true,edit:true,delete:true}, diplomas:{view:true,create:true,edit:true,delete:true}, admin:true},
+  'Модер': {cases:{view:true,create:true,edit:true,delete:true}, diplomas:{view:true,create:true,edit:true,delete:true}, admin:true}
+};
+
+// ========== ШАБЛОНЫ ДИПЛОМОВ ==========
+const DIPLOMA_TEMPLATES = {
+  'Магистратура': 'https://s10.iimage.su/s/30/gd7bC5txU1ZZarspdrYQZZqzA7cZMglzwtKCArAR6.png',
+  'Бакалавриат': 'https://s10.iimage.su/s/01/gAXX41KxVCFMrw3P4QvOom30R4QK2LvitAH2zVnwo.png',
+  'СПО': 'https://s10.iimage.su/s/01/gZLrmfCxrezlo9wOzzI94NwkfjoO7oSCcKQFpGXdU.png'
+};
 
 document.addEventListener('DOMContentLoaded', function(){
   console.log('✅ Страница загружена');
@@ -309,7 +333,7 @@ function renderAdminUsersDirect(){
   
   const html = users.map(u => {
     const isAdmin = u.username === ADMIN_USER;
-    const roleOptions = ['Гражданский','ВП','ВК','ВА','К.С.','Модер'].map(r => 
+    const roleOptions = Object.keys(ROLES).map(r => 
       `<option value="${r}" ${u.role===r?'selected':''}>${r}</option>`
     ).join('');
     
@@ -372,6 +396,7 @@ async function handleRegister(e){
   await forceLoadUsers();
   if(users.find(u => u.username === user)){ alert('Пользователь существует'); return; }
   
+  // РЕГИСТРАЦИЯ СОЗДАЁТ ГРАЖДАНСКОГО
   users.push({ id: 'u'+Date.now(), username: user, password: pass, role: 'Гражданский' });
   await saveToCloud();
   
@@ -409,17 +434,29 @@ function logout(){
 
 function updateUI(){
   if(!currentUser) return;
-  document.getElementById('navLd').style.display = '';
-  document.getElementById('navDip').style.display = '';
-  document.getElementById('navAdmin').style.display = '';
-  document.getElementById('dashLd').style.display = '';
-  document.getElementById('dashDip').style.display = '';
-  document.getElementById('btnCreateDip').style.display = '';
+  const p = ROLES[currentUser.role] || ROLES['Гражданский'];
+  
+  // Показываем/скрываем меню по правам
+  document.getElementById('navLd').style.display = p.cases.view ? '' : 'none';
+  document.getElementById('navDip').style.display = p.diplomas.view ? '' : 'none';
+  document.getElementById('navAdmin').style.display = p.admin ? '' : 'none';
+  document.getElementById('dashLd').style.display = p.cases.view ? '' : 'none';
+  document.getElementById('dashDip').style.display = p.diplomas.view ? '' : 'none';
+  document.getElementById('btnCreateDip').style.display = p.diplomas.create ? '' : 'none';
   
   if(currentUser.role === 'Гражданский'){
     document.getElementById('civilianNotice').style.display = '';
     document.getElementById('mainMessage').textContent = 'Вы не гос. служащий';
+  } else {
+    document.getElementById('civilianNotice').style.display = 'none';
+    document.getElementById('mainMessage').textContent = 'Единая информационная система управления кадровым составом';
   }
+}
+
+function hasPerm(type, action){
+  if(!currentUser) return false;
+  const p = ROLES[currentUser.role] || ROLES['Гражданский'];
+  return p[type] && p[type][action];
 }
 
 function switchTab(tab){
@@ -443,13 +480,14 @@ async function adminCreateUser(){
   await forceLoadUsers();
   if(users.find(x => x.username === u)){ alert('Пользователь существует'); return; }
   
+  // АДМИН МОЖЕТ СОЗДАВАТЬ С ЛЮБОЙ РОЛЬЮ
   users.push({id:'u'+Date.now(), username:u, password:p, role:r});
   await saveToCloud();
   
   document.getElementById('newUsername').value = '';
   document.getElementById('newPassword').value = '';
   renderAdminUsersDirect();
-  alert('✅ Создан');
+  alert('✅ Создан пользователь с ролью: '+r);
 }
 
 async function changeUserRole(id, newRole){
@@ -469,7 +507,9 @@ async function deleteUser(id){
 }
 
 function homeLD(){
-  document.getElementById('ldApp').innerHTML = '<h2>📋 Личные дела</h2><div class="ld-toolbar"><input type="text" id="caseSearch" placeholder="🔍 Поиск..." oninput="renderCasesList()"></div><button class="btn-create" onclick="createCase()">+ Создать</button><hr><div id="casesList"></div>';
+  if(!hasPerm('cases','view')){ document.getElementById('ldApp').innerHTML = '<p style="color:#6a7a5e;padding:20px;">Нет доступа</p>'; return; }
+  const btn = hasPerm('cases','create') ? '<button class="btn-create" onclick="createCase()">+ Создать</button>' : '';
+  document.getElementById('ldApp').innerHTML = '<h2>📋 Личные дела</h2><div class="ld-toolbar"><input type="text" id="caseSearch" placeholder="🔍 Поиск..." oninput="renderCasesList()"></div>'+btn+'<hr><div id="casesList"></div>';
   renderCasesList();
 }
 
@@ -478,16 +518,18 @@ function renderCasesList(){
   const s = document.getElementById('caseSearch') ? document.getElementById('caseSearch').value.toLowerCase() : '';
   const f = cases.filter(x => (x.title||'').toLowerCase().indexOf(s) !== -1);
   if(!f.length){ c.innerHTML = '<p style="color:#6a7a5e;">'+(cases.length?'Ничего не найдено':'Нет дел')+'</p>'; return; }
-  c.innerHTML = f.map(x => '<div class="case-item"><b>📁 '+x.title+'</b><button class="btn btn-open" onclick="openCase(\''+x.id+'\')">Открыть</button><button class="btn btn-del" onclick="deleteCase(\''+x.id+'\')">🗑</button></div>').join('');
+  c.innerHTML = f.map(x => '<div class="case-item"><b>📁 '+x.title+'</b><button class="btn btn-open" onclick="openCase(\''+x.id+'\')">Открыть</button>'+(hasPerm('cases','edit')?'<button class="btn btn-edit" onclick="renameCase(\''+x.id+'\')">✏️</button>':'')+(hasPerm('cases','delete')?'<button class="btn btn-del" onclick="deleteCase(\''+x.id+'\')">🗑</button>':'')+'</div>').join('');
 }
 
 async function createCase(){
+  if(!hasPerm('cases','create')) return;
   cases.push({id:'c'+Date.now(), title:'Новое дело', data:{}});
   await saveToCloud();
   renderCasesList();
 }
 
 async function deleteCase(id){
+  if(!hasPerm('cases','delete')) return;
   if(confirm('Удалить?')){
     cases = cases.filter(x => x.id!==id);
     await saveToCloud();
@@ -495,13 +537,26 @@ async function deleteCase(id){
   }
 }
 
+async function renameCase(id){
+  if(!hasPerm('cases','edit')) return;
+  const c = cases.find(x => x.id===id);
+  if(c){
+    const t = prompt('Название:', c.title);
+    if(t){ c.title = t; await saveToCloud(); renderCasesList(); }
+  }
+}
+
 function openCase(id){
+  if(!hasPerm('cases','view')) return;
   const c = cases.find(x => x.id===id); if(!c) return;
   const d = c.data || {};
-  document.getElementById('ldApp').innerHTML = '<div class="ld-toolbar"><button class="btn-back" onclick="homeLD()">← Назад</button><b>'+c.title+'</b><button class="btn-save" onclick="saveCase(\''+id+'\')">💾</button></div>'+cover(d)+disc(d)+reward(d);
+  const inp = hasPerm('cases','edit') ? '<input value="'+c.title+'" onchange="cases.find(x=>x.id===\''+id+'\').title=this.value">' : '<b>'+c.title+'</b>';
+  const btn = hasPerm('cases','edit') ? '<button class="btn-save" onclick="saveCase(\''+id+'\')">💾</button>' : '';
+  document.getElementById('ldApp').innerHTML = '<div class="ld-toolbar"><button class="btn-back" onclick="homeLD()">← Назад</button>'+inp+btn+'</div>'+cover(d)+disc(d)+reward(d);
 }
 
 async function saveCase(id){
+  if(!hasPerm('cases','edit')) return;
   const data = {};
   document.querySelectorAll("[data-key]").forEach(el => {
     if(el.type === "checkbox") data[el.dataset.key] = el.checked;
@@ -527,44 +582,63 @@ function reward(d){
   return '<div class="page"><h3 class="pg-center">ЛИСТ ПООЩРЕНИЙ</h3><table class="full"><thead><tr><th>№</th><th>Ответственный</th><th>Дата</th><th>Вид</th><th>За что</th></tr></thead><tbody>'+r+'</tbody></table></div>';
 }
 
-const DIPLOMA_TEMPLATES = {
-  'Магистратура': 'https://s10.iimage.su/s/30/gd7bC5txU1ZZarspdrYQZZqzA7cZMglzwtKCArAR6.png',
-  'Бакалавриат': 'https://s10.iimage.su/s/01/gAXX41KxVCFMrw3P4QvOom30R4QK2LvitAH2zVnwo.png',
-  'СПО': 'https://s10.iimage.su/s/01/gZLrmfCxrezlo9wOzzI94NwkfjoO7oSCcKQFpGXdU.png'
-};
-
 function renderDiplomaList(){
+  if(!hasPerm('diplomas','view')){ document.getElementById('diplomaList').innerHTML = '<p>Нет доступа</p>'; return; }
+  
   const s = document.getElementById('diplomaSearch').value.toLowerCase();
   const t = document.getElementById('typeFilter').value;
   const f = diplomas.filter(d => (d.title||'').toLowerCase().indexOf(s)!==-1 && (!t||d.type===t));
-  if(!f.length){ document.getElementById('diplomaList').innerHTML = '<div class="diploma-empty">🎓<p>Нет дипломов</p><button class="btn-create" onclick="createDiploma()">+ Создать</button></div>'; return; }
-  const g = {}; f.forEach(d => { if(!g[d.type])g[d.type]=[]; g[d.type].push(d); });
+  
+  if(!f.length){ 
+    document.getElementById('diplomaList').innerHTML = '<div class="diploma-empty">🎓<p>Нет дипломов</p>'+(hasPerm('diplomas','create')?'<button class="btn-create" onclick="createDiploma()">+ Создать</button>':'')+'</div>'; 
+    return; 
+  }
+  
+  const g = {}; 
+  f.forEach(d => { 
+    if(!g[d.type])g[d.type]=[]; 
+    g[d.type].push(d); 
+  });
+  
   let h = '';
   Object.keys(g).forEach(type => {
-    h += '<div class="diploma-type-section"><h3>'+type+'</h3><div class="diploma-grid">'+g[type].map(d => '<div class="diploma-card"><h4>🎓 '+(d.title||'Без названия')+'</h4><p><b>Дата:</b> '+(d.date||'—')+'</p><div class="card-actions"><button class="btn btn-view" onclick="viewDiploma(\''+d.id+'\')">👁</button><button class="btn btn-edit" onclick="editDiploma(\''+d.id+'\')">✏️</button><button class="btn btn-del" onclick="deleteDiploma(\''+d.id+'\')">🗑</button></div></div>').join('')+'</div></div>';
+    h += '<div class="diploma-type-section"><h3>'+type+'</h3><div class="diploma-grid">'+
+      g[type].map(d => '<div class="diploma-card"><h4>🎓 '+(d.title||'Без названия')+'</h4><p><b>Дата:</b> '+(d.date||'—')+'</p><div class="card-actions"><button class="btn btn-view" onclick="viewDiploma(\''+d.id+'\')">👁</button>'+(hasPerm('diplomas','edit')?'<button class="btn btn-edit" onclick="editDiploma(\''+d.id+'\')">✏️</button>':'')+(hasPerm('diplomas','delete')?'<button class="btn btn-del" onclick="deleteDiploma(\''+d.id+'\')">🗑</button>':'')+'</div></div>').join('')+'</div></div>';
   });
   document.getElementById('diplomaList').innerHTML = h;
 }
 
 async function createDiploma(){
+  if(!hasPerm('diplomas','create')) return;
   const id = 'd'+Date.now();
-  diplomas.push({id, title:'Новый диплом', date:new Date().toLocaleDateString('ru-RU'), type:'Магистратура', fields:{}});
+  // СОЗДАЁМ ДИПЛОМ С ВЫБОРОМ ТИПА
+  diplomas.push({
+    id: id, 
+    title:'Новый диплом', 
+    date:new Date().toLocaleDateString('ru-RU'), 
+    type:'Магистратура', // По умолчанию
+    fields:{}
+  });
   await saveToCloud();
   editDiploma(id);
 }
 
 function viewDiploma(id){
+  if(!hasPerm('diplomas','view')) return;
   const d = diplomas.find(x => x.id===id); if(!d) return;
   document.getElementById('diplomaList').style.display = 'none';
   document.getElementById('diplomaEditor').style.display = 'block';
+  // ПОКАЗЫВАЕМ ПРАВИЛЬНЫЙ ШАБЛОН
   const u = DIPLOMA_TEMPLATES[d.type] || DIPLOMA_TEMPLATES['Магистратура'];
   document.getElementById('diplomaEditor').innerHTML = '<div class="ld-toolbar"><button class="btn-back" onclick="backToDiplomas()">← Назад</button><span>👁 '+d.type+': '+d.title+'</span><button class="btn btn-print" onclick="window.print()">🖨</button></div><div class="page-wrapper"><div class="diploma-container"><img src="'+u+'" class="diploma-bg">'+genDipInputs(d.fields,true)+'</div></div>';
 }
 
 function editDiploma(id){
+  if(!hasPerm('diplomas','edit')) return;
   const d = diplomas.find(x => x.id===id); if(!d) return;
   document.getElementById('diplomaList').style.display = 'none';
   document.getElementById('diplomaEditor').style.display = 'block';
+  // ВЫБИРАЕМ ПРАВИЛЬНЫЙ ШАБЛОН
   const u = DIPLOMA_TEMPLATES[d.type] || DIPLOMA_TEMPLATES['Магистратура'];
   document.getElementById('diplomaEditor').innerHTML = '<div class="ld-toolbar"><button class="btn-back" onclick="backToDiplomas()">← Назад</button><input type="text" id="dTitle" value="'+(d.title||'')+'" placeholder="Название" style="flex:1;"><select id="dType"><option '+(d.type==='Магистратура'?'selected':'')+'>Магистратура</option><option '+(d.type==='Бакалавриат'?'selected':'')+'>Бакалавриат</option><option '+(d.type==='СПО'?'selected':'')+'>СПО</option></select><button class="btn-save" onclick="saveDiploma(\''+id+'\')">💾</button></div><div class="page-wrapper"><div class="diploma-container"><img src="'+u+'" class="diploma-bg" id="dBg">'+genDipInputs(d.fields,false)+'</div></div>';
 }
@@ -575,6 +649,7 @@ function genDipInputs(f,r){
 }
 
 async function saveDiploma(id){
+  if(!hasPerm('diplomas','edit')) return;
   const d = diplomas.find(x => x.id===id); if(!d) return;
   d.title = document.getElementById('dTitle').value;
   d.type = document.getElementById('dType').value;
@@ -585,6 +660,7 @@ async function saveDiploma(id){
 }
 
 async function deleteDiploma(id){
+  if(!hasPerm('diplomas','delete')) return;
   if(confirm('Удалить?')){
     diplomas = diplomas.filter(x => x.id!==id);
     await saveToCloud();
