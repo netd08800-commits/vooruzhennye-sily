@@ -90,10 +90,10 @@ table.full thead th{background:#f0f0f0;text-align:center;}
 .diploma-input:focus{outline:none;background:rgba(212,175,55,.15);}
 .admin-panel{background:#2a1a2a;border:1px solid #5a3a5a;border-radius:8px;padding:20px;margin-bottom:20px;}
 .admin-panel h3{color:#d4af37;margin-bottom:15px;}
-.admin-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;}
+.admin-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-bottom:20px;}
 .admin-form input,.admin-form select{padding:10px;background:#1a2818;border:1px solid #2a3a28;border-radius:4px;color:#e0e0e0;}
-.admin-user-item{display:flex;align-items:center;gap:10px;padding:10px;background:#1e2b1c;margin:8px 0;border-radius:4px;}
-.admin-user-item b{flex:1;color:#c8d4b8;}
+.user-list-item{display:flex;align-items:center;gap:10px;padding:12px;background:#1e2b1c;margin:8px 0;border-radius:6px;border:1px solid #2a3a28;}
+.user-list-item b{flex:1;color:#c8d4b8;}
 .role-badge{padding:3px 10px;background:#2a3a28;border-radius:3px;font-size:11px;color:#8b7d3c;}
 .mil-footer{background:#0a0f08;border-top:1px solid #1a2a18;padding:20px;text-align:center;margin-top:40px;}
 .mil-footer p{color:#3a4a38;font-size:11px;}
@@ -109,12 +109,17 @@ table.full thead th{background:#f0f0f0;text-align:center;}
     <div id="authError" class="auth-error"></div>
     <form class="auth-form" id="loginForm">
       <input type="text" id="loginUsername" placeholder="Имя пользователя" required>
-      <input type=" password" id="loginPassword" placeholder="Пароль" required>
+      <input type="password" id="loginPassword" placeholder="Пароль" required>
       <button type="submit" class="btn">Войти</button>
     </form>
-    <div style="text-align:center;margin-top:15px;font-size:12px;color:#6a7a5e;">
-      Админ: Швец О.В. / Google200720
-    </div>
+    <div class="auth-toggle">Нет аккаунта? <a onclick="showRegister()">Зарегистрироваться</a></div>
+    <form class="auth-form" id="registerForm" style="display:none;">
+      <input type="text" id="regUsername" placeholder="Придумайте имя" required minlength="3">
+      <input type="password" id="regPassword" placeholder="Придумайте пароль" required minlength="6">
+      <input type="password" id="regConfirm" placeholder="Подтвердите пароль" required>
+      <button type="submit" class="btn">Зарегистрироваться</button>
+      <div class="auth-toggle">Уже есть аккаунт? <a onclick="showLogin()">Войти</a></div>
+    </form>
   </div>
 </div>
 
@@ -148,7 +153,7 @@ table.full thead th{background:#f0f0f0;text-align:center;}
 <!-- КОНТЕНТ -->
 <div class="mil-content">
   <div class="section active" id="sec-main">
-    <div class="welcome-banner"><h2>⚔ Добро пожаловать</h2><p id="mainMessage">Общая база JSONBin</p></div>
+    <div class="welcome-banner"><h2>⚔ Добро пожаловать</h2><p id="mainMessage">Облачная база JSONBin</p></div>
     <div id="civilianNotice" class="access-denied" style="display:none;"><h3>⚠ Доступ ограничен</h3><p>Вы не гос. служащий</p></div>
     <div class="info-bar">
       <div class="info-chip">Пользователь: <span id="infoUser">—</span></div>
@@ -177,13 +182,14 @@ table.full thead th{background:#f0f0f0;text-align:center;}
   </div>
   <div class="section" id="sec-admin">
     <div class="admin-panel">
-      <h3>⚙ Пользователи</h3>
+      <h3>⚙ Управление пользователями</h3>
       <div class="admin-form">
-        <input type="text" id="newUsername" placeholder="Имя">
+        <input type="text" id="newUsername" placeholder="Имя пользователя">
         <input type="password" id="newPassword" placeholder="Пароль">
         <select id="newRole"><option>Гражданский</option><option>ВП</option><option>ВК</option><option>ВА</option><option>К.С.</option><option>Модер</option></select>
-        <button class="btn-create" onclick="createUser()">Создать</button>
+        <button class="btn-create" onclick="adminCreateUser()">Создать аккаунт</button>
       </div>
+      <h4 style="color:#8b7d3c;margin-bottom:10px;">Список аккаунтов:</h4>
       <div id="adminUsersList"></div>
     </div>
   </div>
@@ -197,7 +203,7 @@ table.full thead th{background:#f0f0f0;text-align:center;}
 // ==========================================
 const BIN_ID = '69f500f636566621a81494d2';
 const MASTER_KEY = '$2a$10$l.sdu6Gg3YuyoTewb87wYuRkmvHBIjFkhibxhCq9KCP6/WNNM5uSm';
-const API_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
+const API_URL = 'https://api.jsonbin.io/v3/b/' + BIN_ID;
 
 // ========== ДАННЫЕ ==========
 const ADMIN_USER = 'Швец О.В.';
@@ -218,13 +224,11 @@ const ROLES = {
 };
 
 // ========== ИНИЦИАЛИЗАЦИЯ ==========
-document.addEventListener('DOMContentLoaded', async function(){
-  console.log('🔧 Загрузка...');
+document.addEventListener('DOMContentLoaded', function(){
   initDate();
   checkAuth();
   document.getElementById('loginForm').addEventListener('submit', handleLogin);
-  
-  // Авто-обновление данных каждые 8 секунд (синхронизация между вкладками)
+  document.getElementById('registerForm').addEventListener('submit', handleRegister);
   syncTimer = setInterval(loadData, 8000);
 });
 
@@ -240,7 +244,7 @@ async function loadData(){
     const res = await fetch(API_URL, { headers: { 'X-Master-Key': MASTER_KEY } });
     if(!res.ok) throw new Error('Bin not found or key invalid');
     const json = await res.json();
-    const data = json.record;
+    const data = json.record || {};
     
     cases = data.cases || [];
     diplomas = data.diplomas || [];
@@ -249,7 +253,7 @@ async function loadData(){
     updateCounters();
     if(document.getElementById('sec-ld').classList.contains('active')) renderCasesList();
     if(document.getElementById('sec-diplomas').classList.contains('active')) renderDiplomaList();
-    if(currentUser && hasPerm('admin',true)) loadAdminUsers();
+    if(currentUser && hasPerm('admin',true)) renderAdminUsers();
   } catch(err){
     console.error('❌ Ошибка загрузки:', err);
   }
@@ -259,10 +263,7 @@ async function saveData(){
   try {
     await fetch(API_URL, {
       method: 'PUT',
-      headers: { 
-        'Content-Type': 'application/json',
-        'X-Master-Key': MASTER_KEY 
-      },
+      headers: { 'Content-Type': 'application/json', 'X-Master-Key': MASTER_KEY },
       body: JSON.stringify({ cases, diplomas, users })
     });
   } catch(err){
@@ -272,6 +273,17 @@ async function saveData(){
 }
 
 // ========== АВТОРИЗАЦИЯ ==========
+function showLogin(){
+  document.getElementById('loginForm').style.display = 'block';
+  document.getElementById('registerForm').style.display = 'none';
+  document.getElementById('authError').style.display = 'none';
+}
+function showRegister(){
+  document.getElementById('loginForm').style.display = 'none';
+  document.getElementById('registerForm').style.display = 'block';
+  document.getElementById('authError').style.display = 'none';
+}
+
 async function handleLogin(e){
   e.preventDefault();
   const user = document.getElementById('loginUsername').value.trim();
@@ -292,6 +304,32 @@ async function handleLogin(e){
     document.getElementById('authError').textContent = 'Неверный логин или пароль';
     document.getElementById('authError').style.display = 'block';
   }
+}
+
+async function handleRegister(e){
+  e.preventDefault();
+  const user = document.getElementById('regUsername').value.trim();
+  const pass = document.getElementById('regPassword').value;
+  const confirm = document.getElementById('regConfirm').value;
+  
+  if(pass !== confirm){ showError('Пароли не совпадают'); return; }
+  if(user.length < 3){ showError('Имя должно быть ≥ 3 символов'); return; }
+  if(pass.length < 6){ showError('Пароль должен быть ≥ 6 символов'); return; }
+  
+  await loadData();
+  if(users.find(u => u.username === user)){ showError('Пользователь уже существует'); return; }
+  
+  const newUser = { id: 'u'+Date.now(), username: user, password: pass, role: 'Гражданский' };
+  users.push(newUser);
+  await saveData();
+  
+  currentUser = newUser;
+  completeLogin();
+}
+
+function showError(msg){
+  document.getElementById('authError').textContent = msg;
+  document.getElementById('authError').style.display = 'block';
 }
 
 function completeLogin(){
@@ -335,7 +373,7 @@ function updateUI(){
     document.getElementById('mainMessage').textContent = 'Вы не гос. служащий';
   }
   
-  if(p.admin) loadAdminUsers();
+  if(p.admin) renderAdminUsers();
 }
 
 function hasPerm(type, action){
@@ -352,12 +390,74 @@ function switchTab(tab){
   
   if(tab === 'ld') homeLD();
   if(tab === 'diplomas') renderDiplomaList();
-  if(tab === 'admin') loadAdminUsers();
+  if(tab === 'admin') renderAdminUsers();
 }
 
 function updateCounters(){
   document.getElementById('caseCount').textContent = cases.length;
   document.getElementById('diplomaCount').textContent = diplomas.length;
+}
+
+// ========== АДМИНКА (ПОЛЬЗОВАТЕЛИ) ==========
+function renderAdminUsers(){
+  if(!hasPerm('admin',true)) return;
+  const list = document.getElementById('adminUsersList');
+  if(!list) return;
+  
+  if(users.length === 0){
+    list.innerHTML = '<p style="color:#6a7a5e;">Пока нет зарегистрированных пользователей</p>';
+    return;
+  }
+  
+  list.innerHTML = users.map(u => {
+    const isAdmin = u.username === ADMIN_USER;
+    const roleOptions = Object.keys(ROLES).map(r => 
+      `<option value="${r}" ${u.role===r?'selected':''}>${r}</option>`
+    ).join('');
+    
+    return `<div class="user-list-item">
+      <b>👤 ${u.username}</b>
+      <span class="role-badge">${u.role}</span>
+      <select onchange="changeUserRole('${u.id}', this.value)" ${isAdmin?'disabled':''}>${roleOptions}</select>
+      ${isAdmin ? '' : `<button class="btn btn-del" onclick="deleteUser('${u.id}')">🗑 Удалить</button>`}
+    </div>`;
+  }).join('');
+}
+
+async function adminCreateUser(){
+  if(!hasPerm('admin',true)) return;
+  const u = document.getElementById('newUsername').value.trim();
+  const p = document.getElementById('newPassword').value;
+  const r = document.getElementById('newRole').value;
+  
+  if(u.length<3 || p.length<6){ alert('Логин ≥3, Пароль ≥6'); return; }
+  await loadData();
+  if(users.find(x => x.username === u)){ alert('Такой пользователь уже есть'); return; }
+  
+  users.push({id:'u'+Date.now(), username:u, password:p, role:r});
+  await saveData();
+  
+  document.getElementById('newUsername').value = '';
+  document.getElementById('newPassword').value = '';
+  renderAdminUsers();
+  alert('✅ Аккаунт создан');
+}
+
+async function changeUserRole(id, newRole){
+  if(!hasPerm('admin',true)) return;
+  const u = users.find(x => x.id===id);
+  if(u) u.role = newRole;
+  await saveData();
+  renderAdminUsers();
+}
+
+async function deleteUser(id){
+  if(!hasPerm('admin',true)) return;
+  if(!confirm('Удалить этого пользователя?')) return;
+  
+  users = users.filter(x => x.id !== id);
+  await saveData();
+  renderAdminUsers();
 }
 
 // ========== ЛИЧНЫЕ ДЕЛА ==========
@@ -545,49 +645,6 @@ function backToDiplomas(){
   document.getElementById('diplomaList').style.display = 'block';
   document.getElementById('diplomaEditor').style.display = 'none';
   renderDiplomaList();
-}
-
-// ========== АДМИНКА ==========
-function loadAdminUsers(){
-  if(!hasPerm('admin',true)) return;
-  document.getElementById('adminUsersList').innerHTML = users.map(u => {
-    return '<div class="admin-user-item"><b>'+u.username+'</b><span class="role-badge">'+u.role+'</span>'+
-      '<select onchange="updRole(\''+u.id+'\',this.value)" '+(u.username===ADMIN_USER?'disabled':'')+'>'+
-      Object.keys(ROLES).map(r => '<option '+(u.role===r?'selected':'')+'>'+r+'</option>').join('')+'</select>'+
-      (u.username!==ADMIN_USER?'<button class="btn btn-del" onclick="delUser(\''+u.id+'\')">🗑</button>':'')+'</div>';
-  }).join('');
-}
-
-async function createUser(){
-  if(!hasPerm('admin',true)) return;
-  const u = document.getElementById('newUsername').value.trim();
-  const p = document.getElementById('newPassword').value;
-  const r = document.getElementById('newRole').value;
-  if(u.length<3||p.length<6){ alert('Логин ≥3, Пароль ≥6'); return; }
-  
-  users.push({id:'u'+Date.now(), username:u, password:p, role:r});
-  await saveData();
-  document.getElementById('newUsername').value = '';
-  document.getElementById('newPassword').value = '';
-  loadAdminUsers();
-  alert('✅ Создан');
-}
-
-async function updRole(id,r){
-  if(!hasPerm('admin',true)) return;
-  const u = users.find(x => x.id===id);
-  if(u) u.role = r;
-  await saveData();
-  loadAdminUsers();
-}
-
-async function delUser(id){
-  if(!hasPerm('admin',true)) return;
-  if(confirm('Удалить?')){
-    users = users.filter(x => x.id!==id);
-    await saveData();
-    loadAdminUsers();
-  }
 }
 </script>
 
