@@ -2,7 +2,9 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <title>Министерство обороны — Региональная Федерация</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 body{background:#1a1f2b;font-family:'Segoe UI',Arial,sans-serif;color:#e0e0e0;min-height:100vh;}
@@ -12,8 +14,6 @@ body{background:#1a1f2b;font-family:'Segoe UI',Arial,sans-serif;color:#e0e0e0;mi
 .auth-card h2{color:#d4af37;text-align:center;margin-bottom:20px;font-size:20px;}
 .auth-form input{width:100%;padding:12px;margin:8px 0;background:#1a2818;border:1px solid #2a3a28;color:#fff;border-radius:4px;}
 .auth-form .btn{width:100%;padding:12px;margin-top:10px;background:#2a5a28;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:14px;font-weight:600;}
-.auth-toggle{text-align:center;margin-top:15px;font-size:13px;color:#6a7a5e;}
-.auth-toggle a{color:#d4af37;cursor:pointer;text-decoration:none;}
 .auth-error{background:#3a1a1a;color:#d88a8a;padding:10px;margin:10px 0;border-radius:4px;display:none;text-align:center;}
 .mil-header{background:linear-gradient(180deg,#2c3e2a,#1e2e1c);border-bottom:3px solid #8b7d3c;padding:0;}
 .mil-header-inner{max-width:1300px;margin:auto;display:flex;align-items:center;padding:12px 30px;gap:20px;}
@@ -114,7 +114,9 @@ table.full thead th{background:#f0f0f0;text-align:center;}
       <input type="password" id="loginPassword" placeholder="Пароль" required>
       <button type="submit" class="btn">Войти</button>
     </form>
-    <div class="auth-toggle">Тест: Швец О.В. / Google200720</div>
+    <div style="text-align:center;margin-top:15px;font-size:12px;color:#6a7a5e;">
+      Админ: Швец О.В. / Google200720
+    </div>
   </div>
 </div>
 
@@ -147,24 +149,20 @@ table.full thead th{background:#f0f0f0;text-align:center;}
 
 <!-- КОНТЕНТ -->
 <div class="mil-content">
-  <!-- ГЛАВНАЯ -->
   <div class="section active" id="sec-main">
-    <div class="welcome-banner"><h2>⚔ Добро пожаловать</h2><p id="mainMessage">Единая информационная система Минобороны</p></div>
+    <div class="welcome-banner"><h2>⚔ Добро пожаловать</h2><p id="mainMessage">Облачная база данных Supabase</p></div>
     <div id="civilianNotice" class="access-denied" style="display:none;"><h3>⚠ Доступ ограничен</h3><p>Вы не гос. служащий</p></div>
     <div class="info-bar">
       <div class="info-chip">Пользователь: <span id="infoUser">—</span></div>
       <div class="info-chip">Роль: <span id="infoRole">—</span></div>
+      <div class="info-chip">База: <span style="color:#7cb87a;">● Supabase</span></div>
     </div>
     <div class="dashboard">
-      <div class="dash-card" onclick="switchTab('ld')" id="dashLd"><div class="card-icon">📋</div><h3>Личные дела</h3><p>Управление личными делами</p><div class="card-num" id="caseCount">0</div></div>
-      <div class="dash-card" onclick="switchTab('diplomas')" id="dashDip"><div class="card-icon">🎓</div><h3>Дипломы</h3><p>Оформление дипломов</p><div class="card-num" id="diplomaCount">0</div></div>
+      <div class="dash-card" onclick="switchTab('ld')" id="dashLd"><div class="card-icon">📋</div><h3>Личные дела</h3><p>Общая база для всех</p><div class="card-num" id="caseCount">0</div></div>
+      <div class="dash-card" onclick="switchTab('diplomas')" id="dashDip"><div class="card-icon">🎓</div><h3>Дипломы</h3><p>Синхронизация в реальном времени</p><div class="card-num" id="diplomaCount">0</div></div>
     </div>
   </div>
-  
-  <!-- ЛИЧНЫЕ ДЕЛА -->
   <div class="section" id="sec-ld"><div class="ld-container" id="ldApp"></div></div>
-  
-  <!-- ДИПЛОМЫ -->
   <div class="section" id="sec-diplomas">
     <div class="diplomas-header"><h2>🎓 Дипломы</h2><button class="btn-create" onclick="createDiploma()" id="btnCreateDip">+ Новый</button></div>
     <div class="diploma-filters">
@@ -179,8 +177,6 @@ table.full thead th{background:#f0f0f0;text-align:center;}
     <div id="diplomaList"></div>
     <div id="diplomaEditor" style="display:none;"></div>
   </div>
-  
-  <!-- АДМИНКА -->
   <div class="section" id="sec-admin">
     <div class="admin-panel">
       <h3>⚙ Пользователи</h3>
@@ -195,18 +191,27 @@ table.full thead th{background:#f0f0f0;text-align:center;}
   </div>
 </div>
 
-<div class="mil-footer"><p>© Министерство обороны РФ</p></div>
+<div class="mil-footer"><p>© Министерство обороны РФ | Общая база Supabase</p></div>
 
 <script>
-// ========== НАСТРОЙКИ ==========
-var ADMIN_USER = 'Швец О.В.';
-var ADMIN_PASS = 'Google200720';
-var currentUser = null;
-var cases = [];
-var diplomas = [];
-var users = [];
+// ==========================================
+// 🔗 ВСТАВЬ СВОИ ДАННЫЕ SUPABASE СЮДА!
+// ==========================================
+const SUPABASE_URL = 'https://tyuwwumiufltpixqszmk.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_-Nf3QGYuHcF3oTmx4B1qOw_VnHNjoZ-';
 
-var ROLES = {
+// Инициализация Supabase
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// ========== ДАННЫЕ ==========
+const ADMIN_USER = 'Швец О.В.';
+const ADMIN_PASS = 'Google200720';
+let currentUser = null;
+let cases = [];
+let diplomas = [];
+let users = [];
+
+const ROLES = {
   'Гражданский': {cases:{view:false,create:false,edit:false,delete:false}, diplomas:{view:false,create:false,edit:false,delete:false}, admin:false},
   'ВП': {cases:{view:true,create:false,edit:true,delete:false}, diplomas:{view:true,create:false,edit:false,delete:false}, admin:false},
   'ВК': {cases:{view:true,create:true,edit:true,delete:false}, diplomas:{view:true,create:false,edit:false,delete:false}, admin:false},
@@ -217,28 +222,100 @@ var ROLES = {
 
 // ========== ИНИЦИАЛИЗАЦИЯ ==========
 document.addEventListener('DOMContentLoaded', function(){
+  console.log('🔧 Загрузка...');
   initDate();
   checkAuth();
   document.getElementById('loginForm').addEventListener('submit', handleLogin);
 });
 
 function initDate(){
-  var n = new Date();
-  var m = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+  const n = new Date();
+  const m = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
   document.getElementById('headerDate').textContent = n.getDate()+' '+m[n.getMonth()]+' '+n.getFullYear();
 }
 
+// ========== ЗАГРУЗКА ДАННЫХ ИЗ SUPABASE ==========
+async function loadData(){
+  try {
+    // Загрузка личных дел
+    const {  casesData, error: casesError } = await supabase.from('cases').select('*');
+    if(casesError) throw casesError;
+    cases = casesData || [];
+    
+    // Загрузка дипломов
+    const {  diplomasData, error: diplomasError } = await supabase.from('diplomas').select('*');
+    if(diplomasError) throw diplomasError;
+    diplomas = diplomasData || [];
+    
+    // Загрузка пользователей (только для админов)
+    if(currentUser && hasPerm('admin', true)){
+      const {  usersData, error: usersError } = await supabase.from('users').select('*');
+      if(usersError) throw usersError;
+      users = usersData || [];
+    }
+    
+    updateCounters();
+    console.log('✅ Данные загружены:', {cases: cases.length, diplomas: diplomas.length, users: users.length});
+  } catch(err){
+    console.error('❌ Ошибка загрузки:', err);
+  }
+}
+
+// Подписка на изменения в реальном времени
+function subscribeToChanges(){
+  supabase.channel('public-db')
+    .on('postgres_changes', {event: '*', schema: 'public', table: 'cases'}, payload => {
+      console.log('🔄 Изменение в cases:', payload);
+      loadData();
+      if(document.getElementById('sec-ld').classList.contains('active')) renderCasesList();
+    })
+    .on('postgres_changes', {event: '*', schema: 'public', table: 'diplomas'}, payload => {
+      console.log('🔄 Изменение в diplomas:', payload);
+      loadData();
+      if(document.getElementById('sec-diplomas').classList.contains('active')) renderDiplomaList();
+    })
+    .on('postgres_changes', {event: '*', schema: 'public', table: 'users'}, payload => {
+      console.log('🔄 Изменение в users:', payload);
+      if(hasPerm('admin', true)) loadData();
+    })
+    .subscribe();
+}
+
 // ========== АВТОРИЗАЦИЯ ==========
-function handleLogin(e){
+async function handleLogin(e){
   e.preventDefault();
-  var user = document.getElementById('loginUsername').value.trim();
-  var pass = document.getElementById('loginPassword').value;
+  const user = document.getElementById('loginUsername').value.trim();
+  const pass = document.getElementById('loginPassword').value;
   
+  console.log('🔐 Вход:', user);
+  
+  // Проверка админа (всегда работает)
   if(user === ADMIN_USER && pass === ADMIN_PASS){
     currentUser = {id:'admin', username:user, role:'Модер'};
     completeLogin();
-  } else {
-    document.getElementById('authError').textContent = 'Неверный логин или пароль';
+    return;
+  }
+  
+  // Проверка обычных пользователей в БД
+  try {
+    const {  userData, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('username', user)
+      .eq('password', pass)
+      .single();
+    
+    if(error || !userData){
+      document.getElementById('authError').textContent = 'Неверный логин или пароль';
+      document.getElementById('authError').style.display = 'block';
+      return;
+    }
+    
+    currentUser = userData;
+    completeLogin();
+  } catch(err){
+    console.error('❌ Ошибка входа:', err);
+    document.getElementById('authError').textContent = 'Ошибка подключения';
     document.getElementById('authError').style.display = 'block';
   }
 }
@@ -249,11 +326,14 @@ function completeLogin(){
   document.getElementById('infoRole').textContent = currentUser.role;
   document.getElementById('userDisplay').textContent = currentUser.username;
   localStorage.setItem('mil_user', JSON.stringify(currentUser));
+  
   updateUI();
+  loadData();
+  subscribeToChanges();
 }
 
 function checkAuth(){
-  var saved = localStorage.getItem('mil_user');
+  const saved = localStorage.getItem('mil_user');
   if(saved){
     try {
       currentUser = JSON.parse(saved);
@@ -269,7 +349,7 @@ function logout(){
 
 function updateUI(){
   if(!currentUser) return;
-  var p = ROLES[currentUser.role] || ROLES['Гражданский'];
+  const p = ROLES[currentUser.role] || ROLES['Гражданский'];
   
   document.getElementById('navLd').style.display = p.cases.view ? '' : 'none';
   document.getElementById('navDip').style.display = p.diplomas.view ? '' : 'none';
@@ -288,26 +368,30 @@ function updateUI(){
 
 function hasPerm(type, action){
   if(!currentUser) return false;
-  var p = ROLES[currentUser.role] || ROLES['Гражданский'];
+  const p = ROLES[currentUser.role] || ROLES['Гражданский'];
   return p[type] && p[type][action];
 }
 
 function switchTab(tab){
-  document.querySelectorAll('.section').forEach(function(s){ s.classList.remove('active'); });
-  document.querySelectorAll('.mil-nav-btn').forEach(function(b){ b.classList.remove('active'); });
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.mil-nav-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('sec-'+tab).classList.add('active');
-  event.target.classList.add('active');
+  if(event && event.target) event.target.classList.add('active');
   
   if(tab === 'ld') homeLD();
   if(tab === 'diplomas') renderDiplomaList();
   if(tab === 'admin') loadAdminUsers();
 }
 
+function updateCounters(){
+  document.getElementById('caseCount').textContent = cases.length;
+  document.getElementById('diplomaCount').textContent = diplomas.length;
+}
+
 // ========== ЛИЧНЫЕ ДЕЛА ==========
 function homeLD(){
-  if(!hasPerm('cases','view')){ document.getElementById('ldApp').innerHTML = '<p>Нет доступа</p>'; return; }
-  
-  var btn = hasPerm('cases','create') ? '<button class="btn-create" onclick="createCase()">+ Создать</button>' : '';
+  if(!hasPerm('cases','view')){ document.getElementById('ldApp').innerHTML = '<p style="color:#6a7a5e;padding:20px;">Нет доступа</p>'; return; }
+  const btn = hasPerm('cases','create') ? '<button class="btn-create" onclick="createCase()">+ Создать дело</button>' : '';
   document.getElementById('ldApp').innerHTML = '<h2>📋 Личные дела</h2>'+
     '<div class="ld-toolbar"><input type="text" id="caseSearch" placeholder="🔍 Поиск..." oninput="renderCasesList()"></div>'+
     btn+'<hr><div id="casesList"></div>';
@@ -315,13 +399,13 @@ function homeLD(){
 }
 
 function renderCasesList(){
-  var c = document.getElementById('casesList'); if(!c) return;
-  var s = document.getElementById('caseSearch') ? document.getElementById('caseSearch').value.toLowerCase() : '';
-  var f = cases.filter(function(x){ return (x.title||'').toLowerCase().indexOf(s) !== -1; });
+  const c = document.getElementById('casesList'); if(!c) return;
+  const s = document.getElementById('caseSearch') ? document.getElementById('caseSearch').value.toLowerCase() : '';
+  const f = cases.filter(x => (x.title||'').toLowerCase().indexOf(s) !== -1);
   
-  if(!f.length){ c.innerHTML = '<p style="color:#6a7a5e;">'+(cases.length?'Ничего не найдено':'Нет дел')+'</p>'; return; }
+  if(!f.length){ c.innerHTML = '<p style="color:#6a7a5e;margin-top:15px;">'+(cases.length?'Ничего не найдено':'Нет дел')+'</p>'; return; }
   
-  c.innerHTML = f.map(function(x){
+  c.innerHTML = f.map(x => {
     return '<div class="case-item"><b>📁 '+x.title+'</b>'+
       '<button class="btn btn-open" onclick="openCase(\''+x.id+'\')">Открыть</button>'+
       (hasPerm('cases','edit')?'<button class="btn btn-edit" onclick="renameCase(\''+x.id+'\')">✏️</button>':'')+
@@ -329,43 +413,74 @@ function renderCasesList(){
   }).join('');
 }
 
-function createCase(){ if(!hasPerm('cases','create')) return; cases.push({id:'c'+Date.now(), title:'Новое дело', data:{}}); renderCasesList(); document.getElementById('caseCount').textContent = cases.length; }
-function deleteCase(id){ if(!hasPerm('cases','delete')) return; if(confirm('Удалить?')){ cases = cases.filter(function(x){return x.id!==id;}); renderCasesList(); document.getElementById('caseCount').textContent = cases.length; } }
-function renameCase(id){ if(!hasPerm('cases','edit')) return; var c = cases.find(function(x){return x.id===id;}); if(c){ var t = prompt('Название:', c.title); if(t){ c.title = t; renderCasesList(); } } }
+async function createCase(){
+  if(!hasPerm('cases','create')) return;
+  const id = 'c'+Date.now();
+  const {error} = await supabase.from('cases').insert([{id, title:'Новое дело', data:{}}]);
+  if(error) console.error('Ошибка:', error);
+}
+
+async function deleteCase(id){
+  if(!hasPerm('cases','delete')) return;
+  if(confirm('Удалить?')){
+    await supabase.from('cases').delete().eq('id', id);
+  }
+}
+
+async function renameCase(id){
+  if(!hasPerm('cases','edit')) return;
+  const c = cases.find(x => x.id===id);
+  if(c){
+    const t = prompt('Название:', c.title);
+    if(t) await supabase.from('cases').update({title:t}).eq('id', id);
+  }
+}
 
 function openCase(id){
   if(!hasPerm('cases','view')) return;
-  var c = cases.find(function(x){return x.id===id;}); if(!c) return;
-  var d = c.data || {};
+  const c = cases.find(x => x.id===id); if(!c) return;
+  const d = c.data || {};
   
-  var inp = hasPerm('cases','edit') ? '<input value="'+c.title+'" onchange="cases.find(function(x){return x.id===\''+id+'\'}).title=this.value">' : '<b>'+c.title+'</b>';
-  var btn = hasPerm('cases','edit') ? '<button class="btn-save" onclick="alert(\'Сохранено\')">💾</button>' : '';
+  const inp = hasPerm('cases','edit') ? '<input value="'+c.title+'" onchange="supabase.from(\'cases\').update({title:this.value}).eq(\'id\',\''+id+'\')">' : '<b>'+c.title+'</b>';
+  const btn = hasPerm('cases','edit') ? '<button class="btn-save" onclick="saveCase(\''+id+'\')">💾</button>' : '';
   
   document.getElementById('ldApp').innerHTML = '<div class="ld-toolbar"><button class="btn-back" onclick="homeLD()">← Назад</button>'+inp+btn+'</div>'+cover(d)+disc(d)+reward(d);
 }
 
+async function saveCase(id){
+  if(!hasPerm('cases','edit')) return;
+  const data = {};
+  document.querySelectorAll("[data-key]").forEach(el => {
+    if(el.type === "checkbox") data[el.dataset.key] = el.checked;
+    else data[el.dataset.key] = el.innerText;
+  });
+  await supabase.from('cases').update({data}).eq('id', id);
+  alert('✅ Сохранено');
+}
+
 function cover(d){
-  return '<div class="page cover"><div class="photo-box">ФОТО</div>'+
+  return '<div class="page cover"><div class="photo-box">МЕСТО ДЛЯ<br>ФОТО</div>'+
     '<div class="pg-center" style="font-size:14pt;font-weight:700;">Региональная Федерация<br>Вооруженные силы</div>'+
-    '<div class="pg-center" style="margin:5mm 0;"><img src="https://s2.radikal.cloud/2026/04/29/dfdf_JGfgeca8786ddfc9c6341.webp" style="height:40mm;"></div>'+
-    '<div class="pg-center" style="font-size:24pt;font-weight:700;margin:10mm 0;">ЛИЧНОЕ ДЕЛО</div>'+
-    '<div style="margin:10mm 0;"><div style="border-bottom:1px solid #000;min-height:8mm;">'+(d.fio||'')+'</div><div class="pg-center" style="font-size:10pt;">(ФИО)</div></div>'+
-    '<table class="ftbl"><tr><td>Дата рождения</td><td class="val">'+(d.birth||'')+'</td><td>Пол</td><td class="val">'+(d.gender||'')+'</td></tr>'+
-    '<tr><td>Место рождения</td><td class="val">'+(d.place||'')+'</td><td>Гражданство</td><td class="val">'+(d.cit||'')+'</td></tr></table></div>';
+    '<div class="pg-center" style="margin:5mm 0;"><img src="https://s2.radikal.cloud/2026/04/29/dfdf_JGfgeca8786ddfc9c6341.webp" style="height:42mm;"></div>'+
+    '<div class="pg-center" style="font-size:28pt;font-weight:700;margin:10mm 0;">ЛИЧНОЕ ДЕЛО</div>'+
+    '<div style="margin:10mm 0;"><div style="border-bottom:1px solid #000;min-height:8mm;font-size:14pt;">'+(d.fio||'')+'</div><div class="pg-center" style="font-size:10pt;">( ФИО )</div></div>'+
+    '<table class="ftbl"><tr><td>дата рождения</td><td class="val">'+(d.birth||'')+'</td><td>пол</td><td class="val">'+(d.gender||'')+'</td></tr>'+
+    '<tr><td>место рождения</td><td class="val">'+(d.place||'')+'</td><td>гражданство</td><td class="val">'+(d.cit||'')+'</td></tr>'+
+    '<tr><td>образование</td><td class="val">'+(d.edu||'')+'</td><td>№ паспорта</td><td class="val">'+(d.pass||'')+'</td></tr></table></div>';
 }
 
 function disc(d){
-  var r = ''; for(var i=1;i<=14;i++) r += '<tr><td>'+i+'</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>';
+  let r = ''; for(let i=1;i<=14;i++) r += '<tr><td>'+i+'</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>';
   return '<div class="page"><h3 class="pg-center">ЛИСТ ВЗЫСКАНИЙ</h3><table class="full"><thead><tr><th>№</th><th>Ответственный</th><th>Дата</th><th>Проступок</th><th>Вид</th><th>Основание</th><th>Снятие</th></tr></thead><tbody>'+r+'</tbody></table></div>';
 }
 
 function reward(d){
-  var r = ''; for(var i=1;i<=14;i++) r += '<tr><td>'+i+'</td><td></td><td></td><td></td><td></td></tr>';
+  let r = ''; for(let i=1;i<=14;i++) r += '<tr><td>'+i+'</td><td></td><td></td><td></td><td></td></tr>';
   return '<div class="page"><h3 class="pg-center">ЛИСТ ПООЩРЕНИЙ</h3><table class="full"><thead><tr><th>№</th><th>Ответственный</th><th>Дата</th><th>Вид</th><th>За что</th></tr></thead><tbody>'+r+'</tbody></table></div>';
 }
 
 // ========== ДИПЛОМЫ ==========
-var DIPLOMA_TEMPLATES = {
+const DIPLOMA_TEMPLATES = {
   'Магистратура': 'https://s10.iimage.su/s/30/gd7bC5txU1ZZarspdrYQZZqzA7cZMglzwtKCArAR6.png',
   'Бакалавриат': 'https://s10.iimage.su/s/01/gAXX41KxVCFMrw3P4QvOom30R4QK2LvitAH2zVnwo.png',
   'СПО': 'https://s10.iimage.su/s/01/gZLrmfCxrezlo9wOzzI94NwkfjoO7oSCcKQFpGXdU.png'
@@ -374,17 +489,17 @@ var DIPLOMA_TEMPLATES = {
 function renderDiplomaList(){
   if(!hasPerm('diplomas','view')){ document.getElementById('diplomaList').innerHTML = '<p>Нет доступа</p>'; return; }
   
-  var s = document.getElementById('diplomaSearch').value.toLowerCase();
-  var t = document.getElementById('typeFilter').value;
-  var f = diplomas.filter(function(d){ return (d.title||'').toLowerCase().indexOf(s)!==-1 && (!t||d.type===t); });
+  const s = document.getElementById('diplomaSearch').value.toLowerCase();
+  const t = document.getElementById('typeFilter').value;
+  const f = diplomas.filter(d => (d.title||'').toLowerCase().indexOf(s)!==-1 && (!t||d.type===t));
   
   if(!f.length){ document.getElementById('diplomaList').innerHTML = '<div class="diploma-empty">🎓<p>Нет дипломов</p>'+(hasPerm('diplomas','create')?'<button class="btn-create" onclick="createDiploma()">+ Создать</button>':'')+'</div>'; return; }
   
-  var g = {}; f.forEach(function(d){ if(!g[d.type])g[d.type]=[]; g[d.type].push(d); });
-  var h = '';
-  Object.keys(g).forEach(function(type){
+  const g = {}; f.forEach(d => { if(!g[d.type])g[d.type]=[]; g[d.type].push(d); });
+  let h = '';
+  Object.keys(g).forEach(type => {
     h += '<div class="diploma-type-section"><h3>'+type+'</h3><div class="diploma-grid">'+
-      g[type].map(function(d){
+      g[type].map(d => {
         return '<div class="diploma-card"><h4>🎓 '+(d.title||'Без названия')+'</h4><p><b>Дата:</b> '+(d.date||'—')+'</p>'+
           '<div class="card-actions"><button class="btn btn-view" onclick="viewDiploma(\''+d.id+'\')">👁</button>'+
           (hasPerm('diplomas','edit')?'<button class="btn btn-edit" onclick="editDiploma(\''+d.id+'\')">✏️</button>':'')+
@@ -392,32 +507,30 @@ function renderDiplomaList(){
       }).join('')+'</div></div>';
   });
   document.getElementById('diplomaList').innerHTML = h;
-  document.getElementById('diplomaCount').textContent = diplomas.length;
 }
 
-function createDiploma(){
+async function createDiploma(){
   if(!hasPerm('diplomas','create')) return;
-  diplomas.push({id:'d'+Date.now(), title:'Новый диплом', date:new Date().toLocaleDateString('ru-RU'), type:'Магистратура', fields:{}});
-  editDiploma('d'+(Date.now()-1));
-  document.getElementById('diplomaCount').textContent = diplomas.length;
+  const id = 'd'+Date.now();
+  await supabase.from('diplomas').insert([{id, title:'Новый диплом', date:new Date().toLocaleDateString('ru-RU'), type:'Магистратура', fields:{}}]);
 }
 
 function viewDiploma(id){
   if(!hasPerm('diplomas','view')) return;
-  var d = diplomas.find(function(x){return x.id===id;}); if(!d) return;
+  const d = diplomas.find(x => x.id===id); if(!d) return;
   document.getElementById('diplomaList').style.display = 'none';
   document.getElementById('diplomaEditor').style.display = 'block';
-  var u = DIPLOMA_TEMPLATES[d.type] || DIPLOMA_TEMPLATES['Магистратура'];
-  document.getElementById('diplomaEditor').innerHTML = '<div class="ld-toolbar"><button class="btn-back" onclick="backToDiplomas()">← Назад</button><span>👁 '+d.type+'</span><button class="btn btn-print" onclick="window.print()">🖨</button></div>'+
+  const u = DIPLOMA_TEMPLATES[d.type] || DIPLOMA_TEMPLATES['Магистратура'];
+  document.getElementById('diplomaEditor').innerHTML = '<div class="ld-toolbar"><button class="btn-back" onclick="backToDiplomas()">← Назад</button><span>👁 '+d.type+': '+d.title+'</span><button class="btn btn-print" onclick="window.print()">🖨</button></div>'+
     '<div class="page-wrapper"><div class="diploma-container"><img src="'+u+'" class="diploma-bg">'+genDipInputs(d.fields,true)+'</div></div>';
 }
 
 function editDiploma(id){
   if(!hasPerm('diplomas','edit')) return;
-  var d = diplomas.find(function(x){return x.id===id;}); if(!d) return;
+  const d = diplomas.find(x => x.id===id); if(!d) return;
   document.getElementById('diplomaList').style.display = 'none';
   document.getElementById('diplomaEditor').style.display = 'block';
-  var u = DIPLOMA_TEMPLATES[d.type] || DIPLOMA_TEMPLATES['Магистратура'];
+  const u = DIPLOMA_TEMPLATES[d.type] || DIPLOMA_TEMPLATES['Магистратура'];
   document.getElementById('diplomaEditor').innerHTML = '<div class="ld-toolbar"><button class="btn-back" onclick="backToDiplomas()">← Назад</button>'+
     '<input type="text" id="dTitle" value="'+(d.title||'')+'" placeholder="Название" style="flex:1;">'+
     '<select id="dType"><option '+(d.type==='Магистратура'?'selected':'')+'>Магистратура</option><option '+(d.type==='Бакалавриат'?'selected':'')+'>Бакалавриат</option><option '+(d.type==='СПО'?'selected':'')+'>СПО</option></select>'+
@@ -426,24 +539,27 @@ function editDiploma(id){
 }
 
 function genDipInputs(f,r){
-  var p = [{t:"4%",l:"70%",w:"14%",k:"f1"},{t:"10%",l:"83%",w:"15%",k:"f2"},{t:"17%",l:"54%",w:"44%",k:"f3"},{t:"23%",l:"54%",w:"44%",k:"f4"},{t:"29%",l:"70%",w:"5%",k:"f5"},{t:"33%",l:"54%",w:"44%",k:"f6"},{t:"40%",l:"69%",w:"31%",k:"f7"},{t:"46%",l:"54%",w:"45%",k:"f8"},{t:"55%",l:"68%",w:"29%",k:"f9"},{t:"61%",l:"54%",w:"44%",k:"f10"},{t:"65%",l:"74%",w:"25%",k:"f11"},{t:"69%",l:"54%",w:"45%",k:"f12"},{t:"73%",l:"54%",w:"45%",k:"f13"},{t:"80%",l:"63%",w:"26%",k:"f14"},{t:"83%",l:"55%",w:"41%",k:"f15"},{t:"86%",l:"72%",w:"25%",k:"f16"},{t:"89%",l:"55%",w:"41%",k:"f17"},{t:"94%",l:"73%",w:"25%",k:"f18"}];
-  return p.map(function(x){ return '<input type="text" class="diploma-input" style="top:'+x.t+';left:'+x.l+';width:'+x.w+';height:3%" data-key="'+x.k+'" value="'+((f&&f[x.k])||'')+'" '+(r?'readonly':'')+'>'; }).join('');
+  const p = [{t:"4.06%",l:"70.2%",w:"13.8%",k:"f1"},{t:"9.85%",l:"83.1%",w:"14.6%",k:"f2"},{t:"16.65%",l:"54.2%",w:"44%",k:"f3"},{t:"22.59%",l:"54.2%",w:"43.8%",k:"f4"},{t:"28.54%",l:"69.9%",w:"5.1%",k:"f5"},{t:"33.07%",l:"54.4%",w:"44.3%",k:"f6"},{t:"40%",l:"68.6%",w:"30.8%",k:"f7"},{t:"45.52%",l:"53.6%",w:"45.2%",k:"f8"},{t:"55.14%",l:"67.7%",w:"29%",k:"f9"},{t:"60.94%",l:"53.9%",w:"44.1%",k:"f10"},{t:"64.62%",l:"73.5%",w:"24.6%",k:"f11"},{t:"68.87%",l:"53.6%",w:"45.2%",k:"f12"},{t:"72.83%",l:"54.2%",w:"45.1%",k:"f13"},{t:"79.62%",l:"63.4%",w:"25.8%",k:"f14"},{t:"82.74%",l:"55.2%",w:"41.2%",k:"f15"},{t:"85.85%",l:"71.8%",w:"25%",k:"f16"},{t:"88.54%",l:"54.9%",w:"41.3%",k:"f17"},{t:"93.49%",l:"72.5%",w:"24.5%",k:"f18"}];
+  return p.map(x => '<input type="text" class="diploma-input" style="top:'+x.t+';left:'+x.l+';width:'+x.w+';height:3.5%" data-key="'+x.k+'" value="'+((f&&f[x.k])||'')+'" '+(r?'readonly':'')+'>').join('');
 }
 
-function saveDiploma(id){
+async function saveDiploma(id){
   if(!hasPerm('diplomas','edit')) return;
-  var d = diplomas.find(function(x){return x.id===id;}); if(!d) return;
+  const d = diplomas.find(x => x.id===id); if(!d) return;
   d.title = document.getElementById('dTitle').value;
   d.type = document.getElementById('dType').value;
-  var fd = {}; document.querySelectorAll('.diploma-input[data-key]').forEach(function(i){ fd[i.dataset.key] = i.value; });
+  const fd = {}; document.querySelectorAll('.diploma-input[data-key]').forEach(i => fd[i.dataset.key] = i.value);
   d.fields = fd;
-  alert('Сохранено');
-  backToDiplomas();
+  await supabase.from('diplomas').update({title:d.title, type:d.type, fields:fd}).eq('id', id);
+  alert('✅ Сохранено'); backToDiplomas();
 }
 
-function deleteDiploma(id){
+async function deleteDiploma(id){
   if(!hasPerm('diplomas','delete')) return;
-  if(confirm('Удалить?')){ diplomas = diplomas.filter(function(x){return x.id!==id;}); backToDiplomas(); document.getElementById('diplomaCount').textContent = diplomas.length; }
+  if(confirm('Удалить?')){
+    await supabase.from('diplomas').delete().eq('id', id);
+    backToDiplomas();
+  }
 }
 
 function backToDiplomas(){
@@ -453,38 +569,43 @@ function backToDiplomas(){
 }
 
 // ========== АДМИНКА ==========
-function loadAdminUsers(){
+async function loadAdminUsers(){
   if(!hasPerm('admin',true)) return;
-  document.getElementById('adminUsersList').innerHTML = users.map(function(u){
+  await loadData(); // Обновить список
+  document.getElementById('adminUsersList').innerHTML = users.map(u => {
     return '<div class="admin-user-item"><b>'+u.username+'</b><span class="role-badge">'+u.role+'</span>'+
       '<select onchange="updRole(\''+u.id+'\',this.value)" '+(u.username===ADMIN_USER?'disabled':'')+'>'+
-      Object.keys(ROLES).map(function(r){return '<option '+(u.role===r?'selected':'')+'>'+r+'</option>';}).join('')+'</select>'+
+      Object.keys(ROLES).map(r => '<option '+(u.role===r?'selected':'')+'>'+r+'</option>').join('')+'</select>'+
       (u.username!==ADMIN_USER?'<button class="btn btn-del" onclick="delUser(\''+u.id+'\')">🗑</button>':'')+'</div>';
   }).join('');
 }
 
-function createUser(){
+async function createUser(){
   if(!hasPerm('admin',true)) return;
-  var u = document.getElementById('newUsername').value.trim();
-  var p = document.getElementById('newPassword').value;
-  var r = document.getElementById('newRole').value;
+  const u = document.getElementById('newUsername').value.trim();
+  const p = document.getElementById('newPassword').value;
+  const r = document.getElementById('newRole').value;
   if(u.length<3||p.length<6){ alert('Логин ≥3, Пароль ≥6'); return; }
-  users.push({id:'u'+Date.now(), username:u, password:p, role:r});
+  
+  await supabase.from('users').insert([{id:'u'+Date.now(), username:u, password:p, role:r}]);
   document.getElementById('newUsername').value = '';
   document.getElementById('newPassword').value = '';
   loadAdminUsers();
-  alert('Создан');
+  alert('✅ Создан');
 }
 
-function updRole(id,r){
+async function updRole(id,r){
   if(!hasPerm('admin',true)) return;
-  var u = users.find(function(x){return x.id===id;}); if(u) u.role = r;
+  await supabase.from('users').update({role:r}).eq('id', id);
   loadAdminUsers();
 }
 
-function delUser(id){
+async function delUser(id){
   if(!hasPerm('admin',true)) return;
-  if(confirm('Удалить?')){ users = users.filter(function(x){return x.id!==id;}); loadAdminUsers(); }
+  if(confirm('Удалить?')){
+    await supabase.from('users').delete().eq('id', id);
+    loadAdminUsers();
+  }
 }
 </script>
 
