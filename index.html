@@ -159,7 +159,7 @@ table.full thead th{background:#f0f0f0;text-align:center;}
     <div class="info-bar">
       <div class="info-chip">Пользователь: <span id="infoUser">—</span></div>
       <div class="info-chip">Роль: <span id="infoRole">—</span></div>
-      <div class="info-chip">База: <span id="dbStatus" style="color:#7cb87a;">● Загрузка...</span></div>
+      <div class="info-chip">База: <span id="dbStatus" style="color:#7cb87a;">● Локально</span></div>
     </div>
     <div class="dashboard">
       <div class="dash-card" onclick="switchTab('ld')" id="dashLd"><div class="card-icon">📋</div><h3>Личные дела</h3><p>Общая база для всех</p><div class="card-num" id="caseCount">0</div></div>
@@ -185,7 +185,7 @@ table.full thead th{background:#f0f0f0;text-align:center;}
     <div class="admin-panel">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
         <h3 style="margin:0;">⚙ Управление пользователями</h3>
-        <button class="btn btn-refresh" onclick="refreshAdminData()">🔄 Обновить список</button>
+        <button class="btn btn-refresh" onclick="refreshAdminData()">🔄 Обновить</button>
       </div>
       <div class="admin-form">
         <input type="text" id="newUsername" placeholder="Имя пользователя">
@@ -217,7 +217,6 @@ let cases = [];
 let diplomas = [];
 let users = [];
 let syncTimer = null;
-let dbLoaded = false;
 
 const ROLES = {
   'Гражданский': {cases:{view:false,create:false,edit:false,delete:false}, diplomas:{view:false,create:false,edit:false,delete:false}, admin:false},
@@ -231,11 +230,11 @@ const ROLES = {
 // ========== ИНИЦИАЛИЗАЦИЯ ==========
 document.addEventListener('DOMContentLoaded', function(){
   initDate();
+  loadFromLocal(); // Моментальная загрузка из памяти
   checkAuth();
   document.getElementById('loginForm').addEventListener('submit', handleLogin);
   document.getElementById('registerForm').addEventListener('submit', handleRegister);
-  // Авто-синхронизация каждые 10 секунд
-  syncTimer = setInterval(loadData, 10000);
+  syncTimer = setInterval(loadData, 5000); // Тихая синхронизация каждые 5 сек
 });
 
 function initDate(){
@@ -244,7 +243,23 @@ function initDate(){
   document.getElementById('headerDate').textContent = n.getDate()+' '+m[n.getMonth()]+' '+n.getFullYear();
 }
 
-// ========== ЗАГРУЗКА/СОХРАНЕНИЕ ==========
+// ========== БЫСТРАЯ ЗАГРУЗКА ИЗ ПАМЯТИ ==========
+function loadFromLocal(){
+  try {
+    const saved = localStorage.getItem('site_data');
+    if(saved){
+      const data = JSON.parse(saved);
+      cases = data.cases || [];
+      diplomas = data.diplomas || [];
+      users = data.users || [];
+      updateCounters();
+      renderCurrentTab();
+      document.getElementById('dbStatus').textContent = '● Кэш (Быстро)';
+    }
+  } catch(e){ console.log('Кэш пуст'); }
+}
+
+// ========== ЗАГРУЗКА ИЗ ОБЛАКА (В ФОНЕ) ==========
 async function loadData(){
   try {
     const res = await fetch(API_URL, { headers: { 'X-Master-Key': MASTER_KEY } });
@@ -256,36 +271,44 @@ async function loadData(){
     diplomas = data.diplomas || [];
     users = data.users || [];
     
-    dbLoaded = true;
-    document.getElementById('dbStatus').textContent = '● Подключено';
-    document.getElementById('dbStatus').style.color = '#7cb87a';
-    
+    saveToLocal();
     updateCounters();
-    // Обновляем текущую вкладку, если она открыта
-    if(document.getElementById('sec-ld').classList.contains('active')) renderCasesList();
-    if(document.getElementById('sec-diplomas').classList.contains('active')) renderDiplomaList();
-    if(document.getElementById('sec-admin').classList.contains('active')) renderAdminUsers();
+    renderCurrentTab();
+    
+    document.getElementById('dbStatus').textContent = '● Онлайн';
+    document.getElementById('dbStatus').style.color = '#7cb87a';
   } catch(err){
-    console.warn('⚠️ База недоступна:', err);
-    dbLoaded = false;
+    console.warn('⚠️ Ошибка синхронизации (работаем локально):', err);
     document.getElementById('dbStatus').textContent = '● Ошибка';
     document.getElementById('dbStatus').style.color = '#d88a8a';
   }
 }
 
-async function saveData(){
-  if(!dbLoaded) { alert('База данных недоступна. Проверьте ключи.'); return; }
+// ========== СОХРАНЕНИЕ ==========
+function saveToLocal(){
+  localStorage.setItem('site_data', JSON.stringify({ cases, diplomas, users }));
+}
+
+async function saveToCloud(){
+  saveToLocal(); // Сначала сохраняем локально мгновенно
   try {
     await fetch(API_URL, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', 'X-Master-Key': MASTER_KEY },
       body: JSON.stringify({ cases, diplomas, users })
     });
-    console.log('✅ Сохранено');
+    document.getElementById('dbStatus').textContent = '● Сохранено';
   } catch(err){
-    console.error('❌ Ошибка сохранения:', err);
-    alert('Не удалось сохранить в облако.');
+    console.error('❌ Ошибка облака:', err);
+    document.getElementById('dbStatus').textContent = '● Ошибка сохранения';
   }
+}
+
+// ========== РЕНДЕР ТЕКУЩЕЙ ВКЛАДКИ ==========
+function renderCurrentTab(){
+  if(document.getElementById('sec-ld').classList.contains('active')) renderCasesList();
+  if(document.getElementById('sec-diplomas').classList.contains('active')) renderDiplomaList();
+  if(document.getElementById('sec-admin').classList.contains('active')) renderAdminUsers();
 }
 
 // ========== АВТОРИЗАЦИЯ ==========
@@ -311,6 +334,7 @@ async function handleLogin(e){
     return;
   }
   
+  // Для обычных юзеров пробуем загрузить свежие данные, но не блокируем если ошибка
   try { await loadData(); } catch(err){}
   
   const found = users.find(u => u.username === user && u.password === pass);
@@ -338,7 +362,7 @@ async function handleRegister(e){
   
   const newUser = { id: 'u'+Date.now(), username: user, password: pass, role: 'Гражданский' };
   users.push(newUser);
-  await saveData();
+  saveToCloud(); // Мгновенно в память, потом в облако
   
   currentUser = newUser;
   completeLogin();
@@ -356,7 +380,7 @@ function completeLogin(){
   document.getElementById('userDisplay').textContent = currentUser.username;
   localStorage.setItem('mil_user', JSON.stringify(currentUser));
   updateUI();
-  loadData();
+  loadData(); // Фоновая загрузка
 }
 
 function checkAuth(){
@@ -399,30 +423,22 @@ function hasPerm(type, action){
   return p[type] && p[type][action];
 }
 
-// ========== НАВИГАЦИЯ (ИСПРАВЛЕННАЯ) ==========
-async function switchTab(tab){
+// ========== НАВИГАЦИЯ (МОМЕНТАЛЬНАЯ) ==========
+function switchTab(tab){
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.mil-nav-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('sec-'+tab).classList.add('active');
   if(event && event.target) event.target.classList.add('active');
   
-  // ИСПРАВЛЕНИЕ: Для админки ждем загрузку данных перед отрисовкой
-  if(tab === 'admin') {
-    await loadData();
-    renderAdminUsers();
-  } else if(tab === 'ld') {
-    await loadData();
-    homeLD();
-  } else if(tab === 'diplomas') {
-    await loadData();
-    renderDiplomaList();
-  }
+  // Рисуем мгновенно из локальных данных
+  if(tab === 'ld') homeLD();
+  if(tab === 'diplomas') renderDiplomaList();
+  if(tab === 'admin') renderAdminUsers();
 }
 
-// Функция ручного обновления для админки
-async function refreshAdminData(){
-  await loadData();
-  renderAdminUsers();
+function refreshAdminData(){
+  document.getElementById('dbStatus').textContent = '● Обновление...';
+  loadData();
 }
 
 function updateCounters(){
@@ -436,11 +452,8 @@ function renderAdminUsers(){
   const list = document.getElementById('adminUsersList');
   if(!list) return;
   
-  // Отладка в консоль
-  console.log('📊 Рендер админки. Пользователей в массиве:', users.length);
-  
   if(!users.length){
-    list.innerHTML = '<p style="color:#6a7a5e;padding:10px;">Нет зарегистрированных пользователей</p>';
+    list.innerHTML = '<p style="color:#6a7a5e;padding:10px;">Нет пользователей</p>';
     return;
   }
   
@@ -467,11 +480,10 @@ async function adminCreateUser(){
   
   if(u.length<3 || p.length<6){ alert('Логин ≥3, Пароль ≥6'); return; }
   
-  await loadData(); // Загружаем свежие данные
   if(users.find(x => x.username === u)){ alert('Такой пользователь уже есть'); return; }
   
   users.push({id:'u'+Date.now(), username:u, password:p, role:r});
-  await saveData();
+  saveToCloud(); // Мгновенно в память, потом в облако
   
   document.getElementById('newUsername').value = '';
   document.getElementById('newPassword').value = '';
@@ -483,7 +495,7 @@ async function changeUserRole(id, newRole){
   if(!hasPerm('admin',true)) return;
   const u = users.find(x => x.id===id);
   if(u) u.role = newRole;
-  await saveData();
+  saveToCloud();
   renderAdminUsers();
 }
 
@@ -492,7 +504,7 @@ async function deleteUser(id){
   if(!confirm('Удалить этого пользователя?')) return;
   
   users = users.filter(x => x.id !== id);
-  await saveData();
+  saveToCloud(); // Мгновенно
   renderAdminUsers();
 }
 
@@ -524,7 +536,7 @@ function renderCasesList(){
 async function createCase(){
   if(!hasPerm('cases','create')) return;
   cases.push({id:'c'+Date.now(), title:'Новое дело', data:{}});
-  await saveData();
+  saveToCloud(); // Мгновенно
   renderCasesList();
 }
 
@@ -532,7 +544,7 @@ async function deleteCase(id){
   if(!hasPerm('cases','delete')) return;
   if(confirm('Удалить?')){
     cases = cases.filter(x => x.id!==id);
-    await saveData();
+    saveToCloud(); // Мгновенно
     renderCasesList();
   }
 }
@@ -542,7 +554,7 @@ async function renameCase(id){
   const c = cases.find(x => x.id===id);
   if(c){
     const t = prompt('Название:', c.title);
-    if(t){ c.title = t; await saveData(); renderCasesList(); }
+    if(t){ c.title = t; saveToCloud(); renderCasesList(); }
   }
 }
 
@@ -566,7 +578,7 @@ async function saveCase(id){
   });
   const c = cases.find(x => x.id===id);
   if(c) c.data = data;
-  await saveData();
+  saveToCloud(); // Мгновенно
   alert('✅ Сохранено');
 }
 
@@ -625,7 +637,7 @@ async function createDiploma(){
   if(!hasPerm('diplomas','create')) return;
   const id = 'd'+Date.now();
   diplomas.push({id, title:'Новый диплом', date:new Date().toLocaleDateString('ru-RU'), type:'Магистратура', fields:{}});
-  await saveData();
+  saveToCloud(); // Мгновенно
   editDiploma(id);
 }
 
@@ -664,7 +676,7 @@ async function saveDiploma(id){
   d.type = document.getElementById('dType').value;
   const fd = {}; document.querySelectorAll('.diploma-input[data-key]').forEach(i => fd[i.dataset.key] = i.value);
   d.fields = fd;
-  await saveData();
+  saveToCloud(); // Мгновенно
   alert('✅ Сохранено'); backToDiplomas();
 }
 
@@ -672,7 +684,7 @@ async function deleteDiploma(id){
   if(!hasPerm('diplomas','delete')) return;
   if(confirm('Удалить?')){
     diplomas = diplomas.filter(x => x.id!==id);
-    await saveData();
+    saveToCloud(); // Мгновенно
     backToDiplomas();
   }
 }
