@@ -2,9 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <title>Министерство обороны — Региональная Федерация</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 body{background:#1a1f2b;font-family:'Segoe UI',Arial,sans-serif;color:#e0e0e0;min-height:100vh;}
@@ -111,7 +109,7 @@ table.full thead th{background:#f0f0f0;text-align:center;}
     <div id="authError" class="auth-error"></div>
     <form class="auth-form" id="loginForm">
       <input type="text" id="loginUsername" placeholder="Имя пользователя" required>
-      <input type="password" id="loginPassword" placeholder="Пароль" required>
+      <input type=" password" id="loginPassword" placeholder="Пароль" required>
       <button type="submit" class="btn">Войти</button>
     </form>
     <div style="text-align:center;margin-top:15px;font-size:12px;color:#6a7a5e;">
@@ -150,12 +148,12 @@ table.full thead th{background:#f0f0f0;text-align:center;}
 <!-- КОНТЕНТ -->
 <div class="mil-content">
   <div class="section active" id="sec-main">
-    <div class="welcome-banner"><h2>⚔ Добро пожаловать</h2><p id="mainMessage">Облачная база данных Supabase</p></div>
+    <div class="welcome-banner"><h2>⚔ Добро пожаловать</h2><p id="mainMessage">Общая база JSONBin</p></div>
     <div id="civilianNotice" class="access-denied" style="display:none;"><h3>⚠ Доступ ограничен</h3><p>Вы не гос. служащий</p></div>
     <div class="info-bar">
       <div class="info-chip">Пользователь: <span id="infoUser">—</span></div>
       <div class="info-chip">Роль: <span id="infoRole">—</span></div>
-      <div class="info-chip">База: <span style="color:#7cb87a;">● Supabase</span></div>
+      <div class="info-chip">База: <span style="color:#7cb87a;">● JSONBin</span></div>
     </div>
     <div class="dashboard">
       <div class="dash-card" onclick="switchTab('ld')" id="dashLd"><div class="card-icon">📋</div><h3>Личные дела</h3><p>Общая база для всех</p><div class="card-num" id="caseCount">0</div></div>
@@ -191,17 +189,15 @@ table.full thead th{background:#f0f0f0;text-align:center;}
   </div>
 </div>
 
-<div class="mil-footer"><p>© Министерство обороны РФ | Общая база Supabase</p></div>
+<div class="mil-footer"><p>© Министерство обороны РФ | JSONBin Cloud</p></div>
 
 <script>
 // ==========================================
-// 🔗 ВСТАВЬ СВОИ ДАННЫЕ SUPABASE СЮДА!
+// 🔑 ВСТАВЬ СЮДА ДАННЫЕ ИЗ JSONBIN.IO
 // ==========================================
-const SUPABASE_URL = 'https://tyuwwumiufltpixqszmk.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_-Nf3QGYuHcF3oTmx4B1qOw_VnHNjoZ-';
-
-// Инициализация Supabase
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const BIN_ID = '69f500f636566621a81494d2';
+const MASTER_KEY = '$2a$10$l.sdu6Gg3YuyoTewb87wYuRkmvHBIjFkhibxhCq9KCP6/WNNM5uSm';
+const API_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
 
 // ========== ДАННЫЕ ==========
 const ADMIN_USER = 'Швец О.В.';
@@ -210,6 +206,7 @@ let currentUser = null;
 let cases = [];
 let diplomas = [];
 let users = [];
+let syncTimer = null;
 
 const ROLES = {
   'Гражданский': {cases:{view:false,create:false,edit:false,delete:false}, diplomas:{view:false,create:false,edit:false,delete:false}, admin:false},
@@ -221,11 +218,14 @@ const ROLES = {
 };
 
 // ========== ИНИЦИАЛИЗАЦИЯ ==========
-document.addEventListener('DOMContentLoaded', function(){
+document.addEventListener('DOMContentLoaded', async function(){
   console.log('🔧 Загрузка...');
   initDate();
   checkAuth();
   document.getElementById('loginForm').addEventListener('submit', handleLogin);
+  
+  // Авто-обновление данных каждые 8 секунд (синхронизация между вкладками)
+  syncTimer = setInterval(loadData, 8000);
 });
 
 function initDate(){
@@ -234,51 +234,41 @@ function initDate(){
   document.getElementById('headerDate').textContent = n.getDate()+' '+m[n.getMonth()]+' '+n.getFullYear();
 }
 
-// ========== ЗАГРУЗКА ДАННЫХ ИЗ SUPABASE ==========
+// ========== ЗАГРУЗКА/СОХРАНЕНИЕ В JSONBIN ==========
 async function loadData(){
   try {
-    // Загрузка личных дел
-    const {  casesData, error: casesError } = await supabase.from('cases').select('*');
-    if(casesError) throw casesError;
-    cases = casesData || [];
+    const res = await fetch(API_URL, { headers: { 'X-Master-Key': MASTER_KEY } });
+    if(!res.ok) throw new Error('Bin not found or key invalid');
+    const json = await res.json();
+    const data = json.record;
     
-    // Загрузка дипломов
-    const {  diplomasData, error: diplomasError } = await supabase.from('diplomas').select('*');
-    if(diplomasError) throw diplomasError;
-    diplomas = diplomasData || [];
-    
-    // Загрузка пользователей (только для админов)
-    if(currentUser && hasPerm('admin', true)){
-      const {  usersData, error: usersError } = await supabase.from('users').select('*');
-      if(usersError) throw usersError;
-      users = usersData || [];
-    }
+    cases = data.cases || [];
+    diplomas = data.diplomas || [];
+    users = data.users || [];
     
     updateCounters();
-    console.log('✅ Данные загружены:', {cases: cases.length, diplomas: diplomas.length, users: users.length});
+    if(document.getElementById('sec-ld').classList.contains('active')) renderCasesList();
+    if(document.getElementById('sec-diplomas').classList.contains('active')) renderDiplomaList();
+    if(currentUser && hasPerm('admin',true)) loadAdminUsers();
   } catch(err){
     console.error('❌ Ошибка загрузки:', err);
   }
 }
 
-// Подписка на изменения в реальном времени
-function subscribeToChanges(){
-  supabase.channel('public-db')
-    .on('postgres_changes', {event: '*', schema: 'public', table: 'cases'}, payload => {
-      console.log('🔄 Изменение в cases:', payload);
-      loadData();
-      if(document.getElementById('sec-ld').classList.contains('active')) renderCasesList();
-    })
-    .on('postgres_changes', {event: '*', schema: 'public', table: 'diplomas'}, payload => {
-      console.log('🔄 Изменение в diplomas:', payload);
-      loadData();
-      if(document.getElementById('sec-diplomas').classList.contains('active')) renderDiplomaList();
-    })
-    .on('postgres_changes', {event: '*', schema: 'public', table: 'users'}, payload => {
-      console.log('🔄 Изменение в users:', payload);
-      if(hasPerm('admin', true)) loadData();
-    })
-    .subscribe();
+async function saveData(){
+  try {
+    await fetch(API_URL, {
+      method: 'PUT',
+      headers: { 
+        'Content-Type': 'application/json',
+        'X-Master-Key': MASTER_KEY 
+      },
+      body: JSON.stringify({ cases, diplomas, users })
+    });
+  } catch(err){
+    console.error('❌ Ошибка сохранения:', err);
+    alert('Ошибка синхронизации с базой');
+  }
 }
 
 // ========== АВТОРИЗАЦИЯ ==========
@@ -287,35 +277,19 @@ async function handleLogin(e){
   const user = document.getElementById('loginUsername').value.trim();
   const pass = document.getElementById('loginPassword').value;
   
-  console.log('🔐 Вход:', user);
-  
-  // Проверка админа (всегда работает)
   if(user === ADMIN_USER && pass === ADMIN_PASS){
     currentUser = {id:'admin', username:user, role:'Модер'};
     completeLogin();
     return;
   }
   
-  // Проверка обычных пользователей в БД
-  try {
-    const {  userData, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('username', user)
-      .eq('password', pass)
-      .single();
-    
-    if(error || !userData){
-      document.getElementById('authError').textContent = 'Неверный логин или пароль';
-      document.getElementById('authError').style.display = 'block';
-      return;
-    }
-    
-    currentUser = userData;
+  await loadData();
+  const found = users.find(u => u.username === user && u.password === pass);
+  if(found){
+    currentUser = found;
     completeLogin();
-  } catch(err){
-    console.error('❌ Ошибка входа:', err);
-    document.getElementById('authError').textContent = 'Ошибка подключения';
+  } else {
+    document.getElementById('authError').textContent = 'Неверный логин или пароль';
     document.getElementById('authError').style.display = 'block';
   }
 }
@@ -326,10 +300,8 @@ function completeLogin(){
   document.getElementById('infoRole').textContent = currentUser.role;
   document.getElementById('userDisplay').textContent = currentUser.username;
   localStorage.setItem('mil_user', JSON.stringify(currentUser));
-  
   updateUI();
   loadData();
-  subscribeToChanges();
 }
 
 function checkAuth(){
@@ -415,15 +387,17 @@ function renderCasesList(){
 
 async function createCase(){
   if(!hasPerm('cases','create')) return;
-  const id = 'c'+Date.now();
-  const {error} = await supabase.from('cases').insert([{id, title:'Новое дело', data:{}}]);
-  if(error) console.error('Ошибка:', error);
+  cases.push({id:'c'+Date.now(), title:'Новое дело', data:{}});
+  await saveData();
+  renderCasesList();
 }
 
 async function deleteCase(id){
   if(!hasPerm('cases','delete')) return;
   if(confirm('Удалить?')){
-    await supabase.from('cases').delete().eq('id', id);
+    cases = cases.filter(x => x.id!==id);
+    await saveData();
+    renderCasesList();
   }
 }
 
@@ -432,7 +406,7 @@ async function renameCase(id){
   const c = cases.find(x => x.id===id);
   if(c){
     const t = prompt('Название:', c.title);
-    if(t) await supabase.from('cases').update({title:t}).eq('id', id);
+    if(t){ c.title = t; await saveData(); renderCasesList(); }
   }
 }
 
@@ -441,7 +415,7 @@ function openCase(id){
   const c = cases.find(x => x.id===id); if(!c) return;
   const d = c.data || {};
   
-  const inp = hasPerm('cases','edit') ? '<input value="'+c.title+'" onchange="supabase.from(\'cases\').update({title:this.value}).eq(\'id\',\''+id+'\')">' : '<b>'+c.title+'</b>';
+  const inp = hasPerm('cases','edit') ? '<input value="'+c.title+'" onchange="cases.find(x=>x.id===\''+id+'\').title=this.value">' : '<b>'+c.title+'</b>';
   const btn = hasPerm('cases','edit') ? '<button class="btn-save" onclick="saveCase(\''+id+'\')">💾</button>' : '';
   
   document.getElementById('ldApp').innerHTML = '<div class="ld-toolbar"><button class="btn-back" onclick="homeLD()">← Назад</button>'+inp+btn+'</div>'+cover(d)+disc(d)+reward(d);
@@ -454,7 +428,9 @@ async function saveCase(id){
     if(el.type === "checkbox") data[el.dataset.key] = el.checked;
     else data[el.dataset.key] = el.innerText;
   });
-  await supabase.from('cases').update({data}).eq('id', id);
+  const c = cases.find(x => x.id===id);
+  if(c) c.data = data;
+  await saveData();
   alert('✅ Сохранено');
 }
 
@@ -512,7 +488,9 @@ function renderDiplomaList(){
 async function createDiploma(){
   if(!hasPerm('diplomas','create')) return;
   const id = 'd'+Date.now();
-  await supabase.from('diplomas').insert([{id, title:'Новый диплом', date:new Date().toLocaleDateString('ru-RU'), type:'Магистратура', fields:{}}]);
+  diplomas.push({id, title:'Новый диплом', date:new Date().toLocaleDateString('ru-RU'), type:'Магистратура', fields:{}});
+  await saveData();
+  editDiploma(id);
 }
 
 function viewDiploma(id){
@@ -550,14 +528,15 @@ async function saveDiploma(id){
   d.type = document.getElementById('dType').value;
   const fd = {}; document.querySelectorAll('.diploma-input[data-key]').forEach(i => fd[i.dataset.key] = i.value);
   d.fields = fd;
-  await supabase.from('diplomas').update({title:d.title, type:d.type, fields:fd}).eq('id', id);
+  await saveData();
   alert('✅ Сохранено'); backToDiplomas();
 }
 
 async function deleteDiploma(id){
   if(!hasPerm('diplomas','delete')) return;
   if(confirm('Удалить?')){
-    await supabase.from('diplomas').delete().eq('id', id);
+    diplomas = diplomas.filter(x => x.id!==id);
+    await saveData();
     backToDiplomas();
   }
 }
@@ -569,9 +548,8 @@ function backToDiplomas(){
 }
 
 // ========== АДМИНКА ==========
-async function loadAdminUsers(){
+function loadAdminUsers(){
   if(!hasPerm('admin',true)) return;
-  await loadData(); // Обновить список
   document.getElementById('adminUsersList').innerHTML = users.map(u => {
     return '<div class="admin-user-item"><b>'+u.username+'</b><span class="role-badge">'+u.role+'</span>'+
       '<select onchange="updRole(\''+u.id+'\',this.value)" '+(u.username===ADMIN_USER?'disabled':'')+'>'+
@@ -587,7 +565,8 @@ async function createUser(){
   const r = document.getElementById('newRole').value;
   if(u.length<3||p.length<6){ alert('Логин ≥3, Пароль ≥6'); return; }
   
-  await supabase.from('users').insert([{id:'u'+Date.now(), username:u, password:p, role:r}]);
+  users.push({id:'u'+Date.now(), username:u, password:p, role:r});
+  await saveData();
   document.getElementById('newUsername').value = '';
   document.getElementById('newPassword').value = '';
   loadAdminUsers();
@@ -596,14 +575,17 @@ async function createUser(){
 
 async function updRole(id,r){
   if(!hasPerm('admin',true)) return;
-  await supabase.from('users').update({role:r}).eq('id', id);
+  const u = users.find(x => x.id===id);
+  if(u) u.role = r;
+  await saveData();
   loadAdminUsers();
 }
 
 async function delUser(id){
   if(!hasPerm('admin',true)) return;
   if(confirm('Удалить?')){
-    await supabase.from('users').delete().eq('id', id);
+    users = users.filter(x => x.id!==id);
+    await saveData();
     loadAdminUsers();
   }
 }
