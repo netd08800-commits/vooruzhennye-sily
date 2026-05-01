@@ -61,7 +61,6 @@ body{background:#1a1f2b;font-family:'Segoe UI',Arial,sans-serif;color:#e0e0e0;mi
 .btn-save{background:linear-gradient(135deg,#8b7d3c,#d4af37);color:#1a1a0a;padding:10px 20px;border-radius:4px;cursor:pointer;font-weight:700;}
 .btn-print{background:#1a3a5a;color:#a0c8e8;}
 .btn-view{background:#3a2a1a;color:#d4af37;}
-.btn-refresh{background:#3a3a1a;color:#d4af37;border:1px solid #5a4a2a;padding:8px 12px;font-size:11px;}
 .ld-toolbar{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;}
 .ld-toolbar input{padding:10px;background:#1e2b1c;border:1px solid #2a3a28;border-radius:4px;color:#c8d4b8;}
 .page{width:210mm;min-height:297mm;background:white;margin:20px auto;padding:20mm;font-family:"Times New Roman",serif;color:#000;position:relative;}
@@ -108,15 +107,15 @@ table.full thead th{background:#f0f0f0;text-align:center;}
     <h2>🔐 ДОСТУП К СИСТЕМЕ</h2>
     <div id="authError" class="auth-error"></div>
     <form class="auth-form" id="loginForm">
-      <input type="text" id="loginUsername" placeholder="Имя пользователя" required>
-      <input type="password" id="loginPassword" placeholder="Пароль" required>
+      <input type="text" id="loginUsername" placeholder="Имя пользователя" required autocomplete="off">
+      <input type="password" id="loginPassword" placeholder="Пароль" required autocomplete="off">
       <button type="submit" class="btn">Войти</button>
     </form>
     <div class="auth-toggle">Нет аккаунта? <a onclick="showRegister()">Зарегистрироваться</a></div>
     <form class="auth-form" id="registerForm" style="display:none;">
-      <input type="text" id="regUsername" placeholder="Придумайте имя" required minlength="3">
-      <input type="password" id="regPassword" placeholder="Придумайте пароль" required minlength="6">
-      <input type="password" id="regConfirm" placeholder="Подтвердите пароль" required>
+      <input type="text" id="regUsername" placeholder="Придумайте имя" required minlength="3" autocomplete="off">
+      <input type="password" id="regPassword" placeholder="Придумайте пароль" required minlength="6" autocomplete="off">
+      <input type="password" id="regConfirm" placeholder="Подтвердите пароль" required autocomplete="off">
       <button type="submit" class="btn">Зарегистрироваться</button>
       <div class="auth-toggle">Уже есть аккаунт? <a onclick="showLogin()">Войти</a></div>
     </form>
@@ -166,7 +165,7 @@ table.full thead th{background:#f0f0f0;text-align:center;}
   <div class="section" id="sec-diplomas">
     <div class="diplomas-header"><h2>🎓 Дипломы</h2><button class="btn-create" onclick="createDiploma()" id="btnCreateDip">+ Новый</button></div>
     <div class="diploma-filters">
-      <input type="text" id="diplomaSearch" placeholder="🔍 Поиск..." oninput="renderDiplomaList()">
+      <input type="text" id="diplomaSearch" placeholder="🔍 Поиск..." oninput="renderDiplomaList()" autocomplete="off">
       <select id="typeFilter" onchange="renderDiplomaList()">
         <option value="">Все типы</option>
         <option value="Магистратура">Магистратура</option>
@@ -179,13 +178,10 @@ table.full thead th{background:#f0f0f0;text-align:center;}
   </div>
   <div class="section" id="sec-admin">
     <div class="admin-panel">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;">
-        <h3 style="margin:0;">⚙ Управление пользователями</h3>
-        <button class="btn btn-refresh" onclick="forceLoadUsers()">🔄 Загрузить</button>
-      </div>
+      <h3 style="margin-bottom:15px;">⚙ Управление пользователями</h3>
       <div class="admin-form">
-        <input type="text" id="newUsername" placeholder="Имя пользователя">
-        <input type="password" id="newPassword" placeholder="Пароль">
+        <input type="text" id="newUsername" placeholder="Имя пользователя" autocomplete="off">
+        <input type="password" id="newPassword" placeholder="Пароль" autocomplete="off">
         <select id="newRole">
           <option value="Гражданский">Гражданский</option>
           <option value="ВП">ВП</option>
@@ -197,7 +193,7 @@ table.full thead th{background:#f0f0f0;text-align:center;}
         <button class="btn-create" onclick="adminCreateUser()">Создать аккаунт</button>
       </div>
       <h4 style="color:#8b7d3c;margin:15px 0 10px;">Список аккаунтов:</h4>
-      <div id="adminUsersList"><p style="color:#6a7a5e;">Нажмите "🔄 Загрузить" для отображения списка</p></div>
+      <div id="adminUsersList"><p style="color:#6a7a5e;">Загрузка...</p></div>
     </div>
   </div>
 </div>
@@ -238,7 +234,6 @@ const DIPLOMA_TEMPLATES = {
 
 document.addEventListener('DOMContentLoaded', function(){
   console.log('✅ Страница загружена');
-  console.log('🔑 Bin ID:', BIN_ID);
   initDate();
   checkAuth();
   document.getElementById('loginForm').onsubmit = handleLogin;
@@ -252,49 +247,7 @@ function initDate(){
   document.getElementById('headerDate').textContent = n.getDate()+' '+m[n.getMonth()]+' '+n.getFullYear();
 }
 
-async function forceLoadUsers(){
-  console.log('🔄 Загрузка данных...');
-  document.getElementById('dbStatus').textContent = '● Загрузка...';
-  document.getElementById('dbStatus').style.color = '#d4af37';
-  
-  try {
-    const res = await fetch(API_URL, { headers: { 'X-Master-Key': MASTER_KEY } });
-    console.log('📡 Ответ сервера:', res.status);
-    
-    if(!res.ok) throw new Error('HTTP '+res.status);
-    
-    const json = await res.json();
-    console.log('📦 Получены данные:', json);
-    
-    const data = json.record || {};
-    users = data.users || [];
-    cases = data.cases || [];
-    diplomas = data.diplomas || [];
-    
-    console.log('👥 Пользователей:', users.length);
-    console.log('📋 Дел:', cases.length);
-    console.log('🎓 Дипломов:', diplomas.length);
-    
-    localStorage.setItem('site_data', JSON.stringify({ cases, diplomas, users }));
-    document.getElementById('caseCount').textContent = cases.length;
-    document.getElementById('diplomaCount').textContent = diplomas.length;
-    
-    renderAdminUsersDirect();
-    
-    document.getElementById('dbStatus').textContent = '● Онлайн';
-    document.getElementById('dbStatus').style.color = '#7cb87a';
-    
-    if(users.length === 0){
-      document.getElementById('adminUsersList').innerHTML = '<p style="color:#d4af37;padding:10px;">⚠️ Нет пользователей. Создай первого!</p>';
-    }
-  } catch(err){
-    console.error('❌ Ошибка загрузки:', err);
-    document.getElementById('dbStatus').textContent = '● Ошибка';
-    document.getElementById('dbStatus').style.color = '#d88a8a';
-    document.getElementById('adminUsersList').innerHTML = '<p style="color:#d88a8a;padding:10px;">❌ Ошибка: '+err.message+'</p>';
-  }
-}
-
+// ========== ЗАГРУЗКА ДАННЫХ ==========
 async function loadData(){
   try {
     const res = await fetch(API_URL, { headers: { 'X-Master-Key': MASTER_KEY } });
@@ -305,7 +258,15 @@ async function loadData(){
     diplomas = data.diplomas || [];
     users = data.users || [];
     localStorage.setItem('site_data', JSON.stringify({ cases, diplomas, users }));
-  } catch(err){}
+    updateCounters();
+    renderCurrentTab();
+    document.getElementById('dbStatus').textContent = '● Онлайн';
+    document.getElementById('dbStatus').style.color = '#7cb87a';
+  } catch(err){
+    console.warn('⚠️ Ошибка загрузки:', err);
+    document.getElementById('dbStatus').textContent = '● Ошибка';
+    document.getElementById('dbStatus').style.color = '#d88a8a';
+  }
 }
 
 async function saveToCloud(){
@@ -322,10 +283,14 @@ async function saveToCloud(){
   }
 }
 
+function renderCurrentTab(){
+  if(document.getElementById('sec-ld').classList.contains('active')) renderCasesList();
+  if(document.getElementById('sec-diplomas').classList.contains('active')) renderDiplomaList();
+  if(document.getElementById('sec-admin').classList.contains('active')) renderAdminUsersDirect();
+}
+
 function renderAdminUsersDirect(){
-  console.log('🎨 Рендер админки...');
   const list = document.getElementById('adminUsersList');
-  
   if(!users || users.length === 0){
     list.innerHTML = '<p style="color:#d4af37;padding:10px;">⚠️ Нет пользователей</p>';
     return;
@@ -346,7 +311,6 @@ function renderAdminUsersDirect(){
   }).join('');
   
   list.innerHTML = html;
-  console.log('✅ Админка отрендерена');
 }
 
 function showLogin(){
@@ -372,7 +336,7 @@ async function handleLogin(e){
     return;
   }
   
-  await forceLoadUsers();
+  await loadData();
   const found = users.find(u => u.username === user && u.password === pass);
   if(found){
     currentUser = found;
@@ -393,10 +357,9 @@ async function handleRegister(e){
   if(user.length < 3){ alert('Имя ≥ 3 символов'); return; }
   if(pass.length < 6){ alert('Пароль ≥ 6 символов'); return; }
   
-  await forceLoadUsers();
+  await loadData();
   if(users.find(u => u.username === user)){ alert('Пользователь существует'); return; }
   
-  // РЕГИСТРАЦИЯ СОЗДАЁТ ГРАЖДАНСКОГО
   users.push({ id: 'u'+Date.now(), username: user, password: pass, role: 'Гражданский' });
   await saveToCloud();
   
@@ -411,6 +374,7 @@ function completeLogin(){
   document.getElementById('userDisplay').textContent = currentUser.username;
   localStorage.setItem('mil_user', JSON.stringify(currentUser));
   updateUI();
+  loadData();
 }
 
 function checkAuth(){
@@ -436,7 +400,6 @@ function updateUI(){
   if(!currentUser) return;
   const p = ROLES[currentUser.role] || ROLES['Гражданский'];
   
-  // Показываем/скрываем меню по правам
   document.getElementById('navLd').style.display = p.cases.view ? '' : 'none';
   document.getElementById('navDip').style.display = p.diplomas.view ? '' : 'none';
   document.getElementById('navAdmin').style.display = p.admin ? '' : 'none';
@@ -459,15 +422,21 @@ function hasPerm(type, action){
   return p[type] && p[type][action];
 }
 
+// ========== ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК С АВТОЗАГРУЗКОЙ ==========
 function switchTab(tab){
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.mil-nav-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('sec-'+tab).classList.add('active');
   if(event && event.target) event.target.classList.add('active');
   
-  if(tab === 'admin') forceLoadUsers();
-  else if(tab === 'ld') homeLD();
-  else if(tab === 'diplomas') renderDiplomaList();
+  // АВТОМАТИЧЕСКАЯ ЗАГРУЗКА ДАННЫХ ПРИ ПЕРЕХОДЕ
+  if(tab === 'admin'){
+    loadData().then(() => renderAdminUsersDirect());
+  } else if(tab === 'ld'){
+    loadData().then(() => homeLD());
+  } else if(tab === 'diplomas'){
+    loadData().then(() => renderDiplomaList());
+  }
 }
 
 async function adminCreateUser(){
@@ -477,10 +446,9 @@ async function adminCreateUser(){
   
   if(u.length<3 || p.length<6){ alert('Логин ≥3, Пароль ≥6'); return; }
   
-  await forceLoadUsers();
+  await loadData();
   if(users.find(x => x.username === u)){ alert('Пользователь существует'); return; }
   
-  // АДМИН МОЖЕТ СОЗДАВАТЬ С ЛЮБОЙ РОЛЬЮ
   users.push({id:'u'+Date.now(), username:u, password:p, role:r});
   await saveToCloud();
   
@@ -509,7 +477,7 @@ async function deleteUser(id){
 function homeLD(){
   if(!hasPerm('cases','view')){ document.getElementById('ldApp').innerHTML = '<p style="color:#6a7a5e;padding:20px;">Нет доступа</p>'; return; }
   const btn = hasPerm('cases','create') ? '<button class="btn-create" onclick="createCase()">+ Создать</button>' : '';
-  document.getElementById('ldApp').innerHTML = '<h2>📋 Личные дела</h2><div class="ld-toolbar"><input type="text" id="caseSearch" placeholder="🔍 Поиск..." oninput="renderCasesList()"></div>'+btn+'<hr><div id="casesList"></div>';
+  document.getElementById('ldApp').innerHTML = '<h2>📋 Личные дела</h2><div class="ld-toolbar"><input type="text" id="caseSearch" placeholder="🔍 Поиск..." oninput="renderCasesList()" autocomplete="off"></div>'+btn+'<hr><div id="casesList"></div>';
   renderCasesList();
 }
 
@@ -523,7 +491,7 @@ function renderCasesList(){
 
 async function createCase(){
   if(!hasPerm('cases','create')) return;
-  cases.push({id:'c'+Date.now(), title:'Новое дело', data:{}});
+  cases.push({id:'c'+Date.now(), title:'Новое дело', {}});
   await saveToCloud();
   renderCasesList();
 }
@@ -611,12 +579,11 @@ function renderDiplomaList(){
 async function createDiploma(){
   if(!hasPerm('diplomas','create')) return;
   const id = 'd'+Date.now();
-  // СОЗДАЁМ ДИПЛОМ С ВЫБОРОМ ТИПА
   diplomas.push({
     id: id, 
     title:'Новый диплом', 
     date:new Date().toLocaleDateString('ru-RU'), 
-    type:'Магистратура', // По умолчанию
+    type:'Магистратура',
     fields:{}
   });
   await saveToCloud();
@@ -628,7 +595,6 @@ function viewDiploma(id){
   const d = diplomas.find(x => x.id===id); if(!d) return;
   document.getElementById('diplomaList').style.display = 'none';
   document.getElementById('diplomaEditor').style.display = 'block';
-  // ПОКАЗЫВАЕМ ПРАВИЛЬНЫЙ ШАБЛОН
   const u = DIPLOMA_TEMPLATES[d.type] || DIPLOMA_TEMPLATES['Магистратура'];
   document.getElementById('diplomaEditor').innerHTML = '<div class="ld-toolbar"><button class="btn-back" onclick="backToDiplomas()">← Назад</button><span>👁 '+d.type+': '+d.title+'</span><button class="btn btn-print" onclick="window.print()">🖨</button></div><div class="page-wrapper"><div class="diploma-container"><img src="'+u+'" class="diploma-bg">'+genDipInputs(d.fields,true)+'</div></div>';
 }
@@ -638,7 +604,6 @@ function editDiploma(id){
   const d = diplomas.find(x => x.id===id); if(!d) return;
   document.getElementById('diplomaList').style.display = 'none';
   document.getElementById('diplomaEditor').style.display = 'block';
-  // ВЫБИРАЕМ ПРАВИЛЬНЫЙ ШАБЛОН
   const u = DIPLOMA_TEMPLATES[d.type] || DIPLOMA_TEMPLATES['Магистратура'];
   document.getElementById('diplomaEditor').innerHTML = '<div class="ld-toolbar"><button class="btn-back" onclick="backToDiplomas()">← Назад</button><input type="text" id="dTitle" value="'+(d.title||'')+'" placeholder="Название" style="flex:1;"><select id="dType"><option '+(d.type==='Магистратура'?'selected':'')+'>Магистратура</option><option '+(d.type==='Бакалавриат'?'selected':'')+'>Бакалавриат</option><option '+(d.type==='СПО'?'selected':'')+'>СПО</option></select><button class="btn-save" onclick="saveDiploma(\''+id+'\')">💾</button></div><div class="page-wrapper"><div class="diploma-container"><img src="'+u+'" class="diploma-bg" id="dBg">'+genDipInputs(d.fields,false)+'</div></div>';
 }
