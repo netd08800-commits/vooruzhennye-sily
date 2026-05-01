@@ -114,8 +114,8 @@ table.full thead th{background:#f0f0f0;text-align:center;}
     <div class="auth-toggle">Нет аккаунта? <a onclick="showRegister()">Зарегистрироваться</a></div>
     <form class="auth-form" id="registerForm" style="display:none;">
       <input type="text" id="regUsername" placeholder="Придумайте имя" required minlength="3" autocomplete="off">
-      <input type="password" id="regPassword" placeholder="Придумайте пароль" required minlength="6" autocomplete="off">
-      <input type="password" id="regConfirm" placeholder="Подтвердите пароль" required autocomplete="off">
+      <input type="password" id="regPassword" placeholder="Придумайте пароль" required minlength="6" autocomplete="new-password">
+      <input type="password" id="regConfirm" placeholder="Подтвердите пароль" required autocomplete="new-password">
       <button type="submit" class="btn">Зарегистрироваться</button>
       <div class="auth-toggle">Уже есть аккаунт? <a onclick="showLogin()">Войти</a></div>
     </form>
@@ -181,7 +181,7 @@ table.full thead th{background:#f0f0f0;text-align:center;}
       <h3 style="margin-bottom:15px;">⚙ Управление пользователями</h3>
       <div class="admin-form">
         <input type="text" id="newUsername" placeholder="Имя пользователя" autocomplete="off">
-        <input type="password" id="newPassword" placeholder="Пароль" autocomplete="off">
+        <input type="password" id="newPassword" placeholder="Пароль" autocomplete="new-password">
         <select id="newRole">
           <option value="Гражданский">Гражданский</option>
           <option value="ВП">ВП</option>
@@ -201,6 +201,8 @@ table.full thead th{background:#f0f0f0;text-align:center;}
 <div class="mil-footer"><p>© Министерство обороны РФ</p></div>
 
 <script>
+console.log('🚀 Скрипт запущен');
+
 // ==========================================
 // ✅ ТВОИ КЛЮЧИ JSONBIN
 // ==========================================
@@ -215,7 +217,6 @@ let cases = [];
 let diplomas = [];
 let users = [];
 
-// ========== РОЛИ И ПРАВА ==========
 const ROLES = {
   'Гражданский': {cases:{view:false,create:false,edit:false,delete:false}, diplomas:{view:false,create:false,edit:false,delete:false}, admin:false},
   'ВП': {cases:{view:true,create:false,edit:true,delete:false}, diplomas:{view:true,create:false,edit:false,delete:false}, admin:false},
@@ -225,7 +226,6 @@ const ROLES = {
   'Модер': {cases:{view:true,create:true,edit:true,delete:true}, diplomas:{view:true,create:true,edit:true,delete:true}, admin:true}
 };
 
-// ========== ШАБЛОНЫ ДИПЛОМОВ ==========
 const DIPLOMA_TEMPLATES = {
   'Магистратура': 'https://s10.iimage.su/s/30/gd7bC5txU1ZZarspdrYQZZqzA7cZMglzwtKCArAR6.png',
   'Бакалавриат': 'https://s10.iimage.su/s/01/gAXX41KxVCFMrw3P4QvOom30R4QK2LvitAH2zVnwo.png',
@@ -233,11 +233,14 @@ const DIPLOMA_TEMPLATES = {
 };
 
 document.addEventListener('DOMContentLoaded', function(){
-  console.log('✅ Страница загружена');
+  console.log('✅ DOM готов');
   initDate();
+  
+  // Привязка форм
+  document.getElementById('loginForm').addEventListener('submit', handleLogin);
+  document.getElementById('registerForm').addEventListener('submit', handleRegister);
+  
   checkAuth();
-  document.getElementById('loginForm').onsubmit = handleLogin;
-  document.getElementById('registerForm').onsubmit = handleRegister;
   setInterval(loadData, 10000);
 });
 
@@ -247,7 +250,6 @@ function initDate(){
   document.getElementById('headerDate').textContent = n.getDate()+' '+m[n.getMonth()]+' '+n.getFullYear();
 }
 
-// ========== ЗАГРУЗКА ДАННЫХ ==========
 async function loadData(){
   try {
     const res = await fetch(API_URL, { headers: { 'X-Master-Key': MASTER_KEY } });
@@ -277,10 +279,8 @@ async function saveToCloud(){
       headers: { 'Content-Type': 'application/json', 'X-Master-Key': MASTER_KEY },
       body: JSON.stringify({ cases, diplomas, users })
     });
-    console.log('✅ Сохранено в облако');
-  } catch(err){
-    console.error('❌ Ошибка сохранения:', err);
-  }
+    console.log('✅ Сохранено');
+  } catch(err){ console.error('❌ Ошибка сохранения:', err); }
 }
 
 function renderCurrentTab(){
@@ -295,21 +295,11 @@ function renderAdminUsersDirect(){
     list.innerHTML = '<p style="color:#d4af37;padding:10px;">⚠️ Нет пользователей</p>';
     return;
   }
-  
   const html = users.map(u => {
     const isAdmin = u.username === ADMIN_USER;
-    const roleOptions = Object.keys(ROLES).map(r => 
-      `<option value="${r}" ${u.role===r?'selected':''}>${r}</option>`
-    ).join('');
-    
-    return `<div class="user-list-item">
-      <b>👤 ${u.username}</b>
-      <span class="role-badge">${u.role}</span>
-      <select onchange="changeUserRole('${u.id}', this.value)" ${isAdmin?'disabled':''}>${roleOptions}</select>
-      ${isAdmin ? '' : `<button class="btn btn-del" onclick="deleteUser('${u.id}')">🗑</button>`}
-    </div>`;
+    const roleOptions = Object.keys(ROLES).map(r => `<option value="${r}" ${u.role===r?'selected':''}>${r}</option>`).join('');
+    return `<div class="user-list-item"><b>👤 ${u.username}</b><span class="role-badge">${u.role}</span><select onchange="changeUserRole('${u.id}', this.value)" ${isAdmin?'disabled':''}>${roleOptions}</select>${isAdmin ? '' : `<button class="btn btn-del" onclick="deleteUser('${u.id}')">🗑</button>`}</div>`;
   }).join('');
-  
   list.innerHTML = html;
 }
 
@@ -327,6 +317,7 @@ function showRegister(){
 
 async function handleLogin(e){
   e.preventDefault();
+  console.log('🔐 Попытка входа');
   const user = document.getElementById('loginUsername').value.trim();
   const pass = document.getElementById('loginPassword').value;
   
@@ -349,6 +340,7 @@ async function handleLogin(e){
 
 async function handleRegister(e){
   e.preventDefault();
+  console.log('📝 Попытка регистрации');
   const user = document.getElementById('regUsername').value.trim();
   const pass = document.getElementById('regPassword').value;
   const confirm = document.getElementById('regConfirm').value;
@@ -399,7 +391,6 @@ function logout(){
 function updateUI(){
   if(!currentUser) return;
   const p = ROLES[currentUser.role] || ROLES['Гражданский'];
-  
   document.getElementById('navLd').style.display = p.cases.view ? '' : 'none';
   document.getElementById('navDip').style.display = p.diplomas.view ? '' : 'none';
   document.getElementById('navAdmin').style.display = p.admin ? '' : 'none';
@@ -422,49 +413,35 @@ function hasPerm(type, action){
   return p[type] && p[type][action];
 }
 
-// ========== ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК С АВТОЗАГРУЗКОЙ ==========
 function switchTab(tab){
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.mil-nav-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('sec-'+tab).classList.add('active');
   if(event && event.target) event.target.classList.add('active');
   
-  // АВТОМАТИЧЕСКАЯ ЗАГРУЗКА ДАННЫХ ПРИ ПЕРЕХОДЕ
-  if(tab === 'admin'){
-    loadData().then(() => renderAdminUsersDirect());
-  } else if(tab === 'ld'){
-    loadData().then(() => homeLD());
-  } else if(tab === 'diplomas'){
-    loadData().then(() => renderDiplomaList());
-  }
+  if(tab === 'admin') loadData().then(renderAdminUsersDirect);
+  else if(tab === 'ld') loadData().then(homeLD);
+  else if(tab === 'diplomas') loadData().then(renderDiplomaList);
 }
 
 async function adminCreateUser(){
   const u = document.getElementById('newUsername').value.trim();
   const p = document.getElementById('newPassword').value;
   const r = document.getElementById('newRole').value;
-  
   if(u.length<3 || p.length<6){ alert('Логин ≥3, Пароль ≥6'); return; }
-  
   await loadData();
   if(users.find(x => x.username === u)){ alert('Пользователь существует'); return; }
-  
   users.push({id:'u'+Date.now(), username:u, password:p, role:r});
   await saveToCloud();
-  
   document.getElementById('newUsername').value = '';
   document.getElementById('newPassword').value = '';
   renderAdminUsersDirect();
-  alert('✅ Создан пользователь с ролью: '+r);
+  alert('✅ Создан');
 }
 
 async function changeUserRole(id, newRole){
   const u = users.find(x => x.id===id);
-  if(u){
-    u.role = newRole;
-    await saveToCloud();
-    renderAdminUsersDirect();
-  }
+  if(u){ u.role = newRole; await saveToCloud(); renderAdminUsersDirect(); }
 }
 
 async function deleteUser(id){
@@ -498,20 +475,13 @@ async function createCase(){
 
 async function deleteCase(id){
   if(!hasPerm('cases','delete')) return;
-  if(confirm('Удалить?')){
-    cases = cases.filter(x => x.id!==id);
-    await saveToCloud();
-    renderCasesList();
-  }
+  if(confirm('Удалить?')){ cases = cases.filter(x => x.id!==id); await saveToCloud(); renderCasesList(); }
 }
 
 async function renameCase(id){
   if(!hasPerm('cases','edit')) return;
   const c = cases.find(x => x.id===id);
-  if(c){
-    const t = prompt('Название:', c.title);
-    if(t){ c.title = t; await saveToCloud(); renderCasesList(); }
-  }
+  if(c){ const t = prompt('Название:', c.title); if(t){ c.title = t; await saveToCloud(); renderCasesList(); } }
 }
 
 function openCase(id){
@@ -526,12 +496,8 @@ function openCase(id){
 async function saveCase(id){
   if(!hasPerm('cases','edit')) return;
   const data = {};
-  document.querySelectorAll("[data-key]").forEach(el => {
-    if(el.type === "checkbox") data[el.dataset.key] = el.checked;
-    else data[el.dataset.key] = el.innerText;
-  });
-  const c = cases.find(x => x.id===id);
-  if(c) c.data = data;
+  document.querySelectorAll("[data-key]").forEach(el => { if(el.type === "checkbox") data[el.dataset.key] = el.checked; else data[el.dataset.key] = el.innerText; });
+  const c = cases.find(x => x.id===id); if(c) c.data = data;
   await saveToCloud();
   alert('✅ Сохранено');
 }
@@ -552,26 +518,14 @@ function reward(d){
 
 function renderDiplomaList(){
   if(!hasPerm('diplomas','view')){ document.getElementById('diplomaList').innerHTML = '<p>Нет доступа</p>'; return; }
-  
   const s = document.getElementById('diplomaSearch').value.toLowerCase();
   const t = document.getElementById('typeFilter').value;
   const f = diplomas.filter(d => (d.title||'').toLowerCase().indexOf(s)!==-1 && (!t||d.type===t));
-  
-  if(!f.length){ 
-    document.getElementById('diplomaList').innerHTML = '<div class="diploma-empty">🎓<p>Нет дипломов</p>'+(hasPerm('diplomas','create')?'<button class="btn-create" onclick="createDiploma()">+ Создать</button>':'')+'</div>'; 
-    return; 
-  }
-  
-  const g = {}; 
-  f.forEach(d => { 
-    if(!g[d.type])g[d.type]=[]; 
-    g[d.type].push(d); 
-  });
-  
+  if(!f.length){ document.getElementById('diplomaList').innerHTML = '<div class="diploma-empty">🎓<p>Нет дипломов</p>'+(hasPerm('diplomas','create')?'<button class="btn-create" onclick="createDiploma()">+ Создать</button>':'')+'</div>'; return; }
+  const g = {}; f.forEach(d => { if(!g[d.type])g[d.type]=[]; g[d.type].push(d); });
   let h = '';
   Object.keys(g).forEach(type => {
-    h += '<div class="diploma-type-section"><h3>'+type+'</h3><div class="diploma-grid">'+
-      g[type].map(d => '<div class="diploma-card"><h4>🎓 '+(d.title||'Без названия')+'</h4><p><b>Дата:</b> '+(d.date||'—')+'</p><div class="card-actions"><button class="btn btn-view" onclick="viewDiploma(\''+d.id+'\')">👁</button>'+(hasPerm('diplomas','edit')?'<button class="btn btn-edit" onclick="editDiploma(\''+d.id+'\')">✏️</button>':'')+(hasPerm('diplomas','delete')?'<button class="btn btn-del" onclick="deleteDiploma(\''+d.id+'\')">🗑</button>':'')+'</div></div>').join('')+'</div></div>';
+    h += '<div class="diploma-type-section"><h3>'+type+'</h3><div class="diploma-grid">'+g[type].map(d => '<div class="diploma-card"><h4>🎓 '+(d.title||'Без названия')+'</h4><p><b>Дата:</b> '+(d.date||'—')+'</p><div class="card-actions"><button class="btn btn-view" onclick="viewDiploma(\''+d.id+'\')">👁</button>'+(hasPerm('diplomas','edit')?'<button class="btn btn-edit" onclick="editDiploma(\''+d.id+'\')">✏️</button>':'')+(hasPerm('diplomas','delete')?'<button class="btn btn-del" onclick="deleteDiploma(\''+d.id+'\')">🗑</button>':'')+'</div></div>').join('')+'</div></div>';
   });
   document.getElementById('diplomaList').innerHTML = h;
 }
@@ -579,13 +533,7 @@ function renderDiplomaList(){
 async function createDiploma(){
   if(!hasPerm('diplomas','create')) return;
   const id = 'd'+Date.now();
-  diplomas.push({
-    id: id, 
-    title:'Новый диплом', 
-    date:new Date().toLocaleDateString('ru-RU'), 
-    type:'Магистратура',
-    fields:{}
-  });
+  diplomas.push({id, title:'Новый диплом', date:new Date().toLocaleDateString('ru-RU'), type:'Магистратура', fields:{}});
   await saveToCloud();
   editDiploma(id);
 }
@@ -626,11 +574,7 @@ async function saveDiploma(id){
 
 async function deleteDiploma(id){
   if(!hasPerm('diplomas','delete')) return;
-  if(confirm('Удалить?')){
-    diplomas = diplomas.filter(x => x.id!==id);
-    await saveToCloud();
-    backToDiplomas();
-  }
+  if(confirm('Удалить?')){ diplomas = diplomas.filter(x => x.id!==id); await saveToCloud(); backToDiplomas(); }
 }
 
 function backToDiplomas(){
