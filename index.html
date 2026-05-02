@@ -174,7 +174,14 @@
         .page-wrapper{display:flex;justify-content:center;padding:15px 0;background:transparent}
         .diploma-container{position:relative;width:1000px;max-width:100%;background:#fff;box-shadow:0 4px 20px rgba(0,0,0,0.25);border-radius:4px}
         .diploma-bg{display:block;width:100%;height:auto;pointer-events:none}
-        .diploma-input{position:absolute;box-sizing:border-box;background:rgba(212,175,55,0.08);border:none;border-bottom:1px dashed rgba(139,125,60,0.3);font-family:'Times New Roman',serif;font-size:1.8cqw;color:#1a1a1a;padding:0 4px;text-align:left}
+        .diploma-input{
+            position:absolute;box-sizing:border-box;
+            background:rgba(212,175,55,0.08);border:none;
+            border-bottom:1px dashed rgba(139,125,60,0.3);
+            font-family:'Times New Roman',serif;
+            font-size: 1.6cqw;  /* уменьшено на 2 единицы (было 1.8cqw) */
+            color:#1a1a1a;padding:0 4px;text-align:left;
+        }
         .diploma-input:focus{outline:none;background:rgba(212,175,55,0.15);border-bottom:1px solid #8b7d3c;box-shadow:0 0 0 2px rgba(212,175,55,0.2)}
         .diploma-input[readonly]{background:transparent;border-bottom:1px solid transparent;cursor:default}
 
@@ -712,7 +719,7 @@ function reward(d){
     '<tbody>'+rows+'</tbody></table></div></div>';
 }
 
-// ========== ДИПЛОМЫ (ПОЛНОСТЬЮ РАБОЧИЕ) ==========
+// ========== ДИПЛОМЫ (С УМЕНЬШЕННЫМ ШРИФТОМ) ==========
 var DIPLOMA_TEMPLATES = {
   'Диплом о высшем образовании магистратура': 'https://s10.iimage.su/s/30/gd7bC5txU1ZZarspdrYQZZqzA7cZMglzwtKCArAR6.png',
   'Диплом о высшем образовании Бакалавриат': 'https://s10.iimage.su/s/01/gAXX41KxVCFMrw3P4QvOom30R4QK2LvitAH2zVnwo.png',
