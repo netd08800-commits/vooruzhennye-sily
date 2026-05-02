@@ -154,6 +154,7 @@
             max-height:9.5mm!important;
             line-height:4.2mm!important;
             word-break:break-word;
+            vertical-align:bottom!important;
             outline:none!important;
             box-shadow:none!important;
             background:transparent!important;
@@ -612,10 +613,13 @@ ldApp.addEventListener('keydown', function(e) {
 
   e.preventDefault();
 
-  // В таблицах: Shift+Enter переносит текст на строку ниже внутри этой же ячейки.
-  // Высота строки и всей таблицы не меняется из-за фиксированных CSS height/max-height/overflow.
+  // Shift+Enter переносит текст на строку ниже внутри этой же ячейки.
+  // Таблица остаётся растянутой на A4, но ячейка не увеличивает строку.
   if (e.shiftKey && e.target.closest('table.full')) {
     insertLineBreakAtCursor();
+    setTimeout(function(){
+      e.target.scrollTop = e.target.scrollHeight;
+    }, 0);
   }
 });
 
