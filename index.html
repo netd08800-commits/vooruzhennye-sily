@@ -176,17 +176,17 @@
         .diploma-bg{display:block;width:100%;height:auto;pointer-events:none}
         .diploma-input{
             position:absolute;box-sizing:border-box;
-            background: transparent;  /* УБРАН ЖЕЛТЫЙ ФОН */
+            background: transparent;  /* убран желтый фон */
             border: none;
-            border-bottom: 1px solid transparent;  /* ПРОЗРАЧНАЯ ГРАНИЦА ПО УМОЛЧАНИЮ */
+            border-bottom: 1px solid transparent;  /* прозрачная граница по умолчанию */
             font-family:'Times New Roman',serif;
-            font-size: 24px;   /* РАЗМЕР 24 ПИКСЕЛЯ */
+            font-size: 24px;   /* базовый размер 24px */
             color:#1a1a1a;padding:0 4px;text-align:left;
         }
         .diploma-input:focus{
             outline:none;
-            background: transparent;  /* ПРОЗРАЧНЫЙ ФОН ПРИ ФОКУСЕ */
-            border-bottom: 1px solid rgba(0,0,0,0.2);  /* ТОНКАЯ СЕРАЯ ЛИНИЯ */
+            background: transparent;
+            border-bottom: 1px solid rgba(0,0,0,0.2);
             box-shadow: none;
         }
         .diploma-input[readonly]{background:transparent;border-bottom:1px solid transparent;cursor:default}
@@ -725,7 +725,7 @@ function reward(d){
     '<tbody>'+rows+'</tbody></table></div></div>';
 }
 
-// ========== ДИПЛОМЫ (ПРОЗРАЧНЫЙ ФОН, ШРИФТ 24px) ==========
+// ========== ДИПЛОМЫ (ПРОЗРАЧНЫЙ ФОН, ШРИФТ 24px, ДЛЯ f5,f9,f18 — 16px) ==========
 var DIPLOMA_TEMPLATES = {
   'Диплом о высшем образовании магистратура': 'https://s10.iimage.su/s/30/gd7bC5txU1ZZarspdrYQZZqzA7cZMglzwtKCArAR6.png',
   'Диплом о высшем образовании Бакалавриат': 'https://s10.iimage.su/s/01/gAXX41KxVCFMrw3P4QvOom30R4QK2LvitAH2zVnwo.png',
@@ -837,20 +837,35 @@ function updateDiplomaBackground(){
 
 function generateDiplomaInputs(fields, readonly){
   var positions = [
-    {top:"4.06%",left:"70.2%",width:"13.8%",key:"f1"},{top:"9.85%",left:"83.1%",width:"14.6%",key:"f2"},
-    {top:"16.65%",left:"54.2%",width:"44%",key:"f3"},{top:"22.59%",left:"54.2%",width:"43.8%",key:"f4"},
-    {top:"28.54%",left:"69.9%",width:"5.1%",key:"f5"},{top:"33.07%",left:"54.4%",width:"44.3%",key:"f6"},
-    {top:"40%",left:"68.6%",width:"30.8%",key:"f7"},{top:"45.52%",left:"53.6%",width:"45.2%",key:"f8"},
-    {top:"55.14%",left:"67.7%",width:"29%",key:"f9"},{top:"60.94%",left:"53.9%",width:"44.1%",key:"f10"},
-    {top:"64.62%",left:"73.5%",width:"24.6%",key:"f11"},{top:"68.87%",left:"53.6%",width:"45.2%",key:"f12"},
-    {top:"72.83%",left:"54.2%",width:"45.1%",key:"f13"},{top:"79.62%",left:"63.4%",width:"25.8%",key:"f14"},
-    {top:"82.74%",left:"55.2%",width:"41.2%",key:"f15"},{top:"85.85%",left:"71.8%",width:"25%",key:"f16"},
-    {top:"88.54%",left:"54.9%",width:"41.3%",key:"f17"},{top:"93.49%",left:"72.5%",width:"24.5%",key:"f18"}
+    {top:"4.06%",left:"70.2%",width:"13.8%",key:"f1"},
+    {top:"9.85%",left:"83.1%",width:"14.6%",key:"f2"},
+    {top:"16.65%",left:"54.2%",width:"44%",key:"f3"},
+    {top:"22.59%",left:"54.2%",width:"43.8%",key:"f4"},
+    {top:"28.54%",left:"69.9%",width:"5.1%",key:"f5"},
+    {top:"33.07%",left:"54.4%",width:"44.3%",key:"f6"},
+    {top:"40%",left:"68.6%",width:"30.8%",key:"f7"},
+    {top:"45.52%",left:"53.6%",width:"45.2%",key:"f8"},
+    {top:"55.14%",left:"67.7%",width:"29%",key:"f9"},
+    {top:"60.94%",left:"53.9%",width:"44.1%",key:"f10"},
+    {top:"64.62%",left:"73.5%",width:"24.6%",key:"f11"},
+    {top:"68.87%",left:"53.6%",width:"45.2%",key:"f12"},
+    {top:"72.83%",left:"54.2%",width:"45.1%",key:"f13"},
+    {top:"79.62%",left:"63.4%",width:"25.8%",key:"f14"},
+    {top:"82.74%",left:"55.2%",width:"41.2%",key:"f15"},
+    {top:"85.85%",left:"71.8%",width:"25%",key:"f16"},
+    {top:"88.54%",left:"54.9%",width:"41.3%",key:"f17"},
+    {top:"93.49%",left:"72.5%",width:"24.5%",key:"f18"}
   ];
+  
+  // Ключи, для которых нужен уменьшенный шрифт 16px
+  var smallFontKeys = ['f5','f9','f18'];
+  
   var html = '';
   positions.forEach(function(p){
     var val = (fields && fields[p.key]) ? fields[p.key] : '';
-    html += '<input type="text" class="diploma-input" style="top:'+p.top+';left:'+p.left+';width:'+p.width+';height:3.5%" '+
+    // Если ключ в списке уменьшенных, добавляем font-size:16px
+    var fontSizeStyle = smallFontKeys.indexOf(p.key) !== -1 ? 'font-size:16px;' : '';
+    html += '<input type="text" class="diploma-input" style="top:'+p.top+';left:'+p.left+';width:'+p.width+';height:3.5%;'+fontSizeStyle+'" '+
       'data-key="'+p.key+'" value="'+val+'" '+(readonly ? 'readonly' : '')+'>';
   });
   return html;
