@@ -152,10 +152,17 @@
             white-space:pre-wrap!important;
             height:9.5mm!important;
             max-height:9.5mm!important;
-            line-height:4.3mm!important;
+            line-height:4.2mm!important;
             word-break:break-word;
+            outline:none!important;
+            box-shadow:none!important;
+            background:transparent!important;
         }
-        table.full td[contenteditable]:focus{outline:2px solid #2d6cdf;outline-offset:-2px;background:#f0f5ff}
+        table.full td[contenteditable]:focus{
+            outline:none!important;
+            box-shadow:none!important;
+            background:transparent!important;
+        }
         table.full .chk-col{text-align:center;vertical-align:middle}
 
         .cover{font-family:"Trebuchet MS",Arial,sans-serif}
@@ -332,6 +339,7 @@
                 <input type="password" id="newPassword" placeholder="Пароль" required>
                 <select id="newRole">
                     <option value="Гражданский">Гражданский</option>
+                    <option value="Гос. служащий">Гос. служащий</option>
                     <option value="ВП">ВП</option>
                     <option value="ВК">ВК</option>
                     <option value="ВА">ВА</option>
@@ -365,6 +373,7 @@ const ADMIN_CREDS = { username: 'Швец О.В.', password: 'Google200720' };
 
 const ROLES = {
   'Гражданский': { cases: { view: false, create: false, edit: false, delete: false }, diplomas: { view: false, create: false, edit: false, delete: false }, admin: false },
+  'Гос. служащий': { cases: { view: true, create: false, edit: false, delete: false }, diplomas: { view: true, create: false, edit: false, delete: false }, admin: false },
   'ВП': { cases: { view: true, create: false, edit: true, delete: false }, diplomas: { view: true, create: false, edit: false, delete: false }, admin: false },
   'ВК': { cases: { view: true, create: true, edit: true, delete: false }, diplomas: { view: true, create: false, edit: false, delete: false }, admin: false },
   'ВА': { cases: { view: true, create: false, edit: true, delete: false }, diplomas: { view: true, create: true, edit: true, delete: false }, admin: false },
@@ -600,7 +609,11 @@ var ldApp = document.getElementById('ldApp');
 
 ldApp.addEventListener('keydown', function(e) {
   if (!e.target.isContentEditable || e.key !== 'Enter') return;
+
   e.preventDefault();
+
+  // В таблицах: Shift+Enter переносит текст на строку ниже внутри этой же ячейки.
+  // Высота строки и всей таблицы не меняется из-за фиксированных CSS height/max-height/overflow.
   if (e.shiftKey && e.target.closest('table.full')) {
     insertLineBreakAtCursor();
   }
