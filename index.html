@@ -131,7 +131,7 @@
         .cover .photo-box{position:absolute;top:50mm;right:20mm;width:35mm;height:45mm;border:1.5pt solid #000;display:flex;align-items:center;justify-content:center;font-size:11pt;font-weight:700;text-align:center;line-height:1.4;color:#000}
         .cover .ftbl{
             width:100%; border-collapse:collapse;
-            table-layout:fixed;   /* жёсткая фиксация ячеек */
+            table-layout:fixed;
             font-size:14pt; color:#000;
         }
         .cover .ftbl td{border:none;padding:3mm 2mm;vertical-align:bottom; overflow:hidden;}
@@ -176,11 +176,11 @@
         .diploma-bg{display:block;width:100%;height:auto;pointer-events:none}
         .diploma-input{
             position:absolute;box-sizing:border-box;
-            background: transparent;  /* убран желтый фон */
+            background: transparent;
             border: none;
-            border-bottom: 1px solid transparent;  /* прозрачная граница по умолчанию */
+            border-bottom: 1px solid transparent;
             font-family:'Times New Roman',serif;
-            font-size: 24px;   /* базовый размер 24px */
+            font-size: 24px;
             color:#1a1a1a;padding:0 4px;text-align:left;
         }
         .diploma-input:focus{
@@ -549,8 +549,15 @@ async function loadData(){
   }
 }
 
-// ========== ЛИЧНЫЕ ДЕЛА (ЗАМОРОЖЕНЫ) ==========
+// ========== ЛИЧНЫЕ ДЕЛА (ЗАМОРОЖЕНЫ + ЗАПРЕТ ENTER) ==========
 var ldApp = document.getElementById('ldApp');
+
+// Запрещаем Enter во всех contenteditable внутри личных дел
+ldApp.addEventListener('keydown', function(e) {
+  if (e.target.isContentEditable && e.key === 'Enter') {
+    e.preventDefault();
+  }
+});
 
 function homeLD(){
   if(!hasPerm('cases', 'view')){
@@ -725,7 +732,7 @@ function reward(d){
     '<tbody>'+rows+'</tbody></table></div></div>';
 }
 
-// ========== ДИПЛОМЫ (ПРОЗРАЧНЫЙ ФОН, ШРИФТ 24px, ДЛЯ f5,f9,f18 — 16px) ==========
+// ========== ДИПЛОМЫ ==========
 var DIPLOMA_TEMPLATES = {
   'Диплом о высшем образовании магистратура': 'https://s10.iimage.su/s/30/gd7bC5txU1ZZarspdrYQZZqzA7cZMglzwtKCArAR6.png',
   'Диплом о высшем образовании Бакалавриат': 'https://s10.iimage.su/s/01/gAXX41KxVCFMrw3P4QvOom30R4QK2LvitAH2zVnwo.png',
@@ -856,14 +863,10 @@ function generateDiplomaInputs(fields, readonly){
     {top:"88.54%",left:"54.9%",width:"41.3%",key:"f17"},
     {top:"93.49%",left:"72.5%",width:"24.5%",key:"f18"}
   ];
-  
-  // Ключи, для которых нужен уменьшенный шрифт 16px
   var smallFontKeys = ['f5','f9','f18'];
-  
   var html = '';
   positions.forEach(function(p){
     var val = (fields && fields[p.key]) ? fields[p.key] : '';
-    // Если ключ в списке уменьшенных, добавляем font-size:16px
     var fontSizeStyle = smallFontKeys.indexOf(p.key) !== -1 ? 'font-size:16px;' : '';
     html += '<input type="text" class="diploma-input" style="top:'+p.top+';left:'+p.left+';width:'+p.width+';height:3.5%;'+fontSizeStyle+'" '+
       'data-key="'+p.key+'" value="'+val+'" '+(readonly ? 'readonly' : '')+'>';
