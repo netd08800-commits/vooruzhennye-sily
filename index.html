@@ -135,19 +135,18 @@
             font-size:14pt; color:#000;
         }
         .cover .ftbl td{border:none;padding:3mm 2mm;vertical-align:bottom; overflow:hidden;}
-        .cover .ftbl .lbl{white-space:nowrap;width:auto;padding-left:0; width:25%;}   /* фикс. ширина меток */
+        .cover .ftbl .lbl{white-space:nowrap;width:auto;padding-left:0; width:25%;}
         .cover .ftbl .lbl2{white-space:nowrap;width:auto;padding-left:8mm; width:25%;}
         .cover .val-fixed{
             display:block; width:100%;
             overflow:hidden; white-space:nowrap;
-            height:12mm; line-height:12mm;   /* текст ровно по центру вертикали */
+            height:12mm; line-height:12mm;
             border-bottom:1px solid #000;
         }
-        /* поле ФИО — по центру */
         .fio-field{
             height:8mm; overflow:hidden; white-space:nowrap;
             font-size:14pt; color:#000; border-bottom:1px solid #000;
-            text-align:center;   /* центрирование текста */
+            text-align:center;
         }
         .resp-field{
             display:inline-block; border-bottom:1px solid #000;
@@ -332,7 +331,7 @@
 
 <script>
 // ==========================================
-// 🔗 ДАННЫЕ SUPABASE (замени при необходимости)
+// 🔗 ДАННЫЕ SUPABASE
 // ==========================================
 const SUPABASE_URL = 'https://tyuwwumiufltpixqszmk.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_-Nf3QGYuHcF3oTmx4B1qOw_VnHNjoZ-';
@@ -537,7 +536,7 @@ async function loadData(){
   }
 }
 
-// ========== ЛИЧНЫЕ ДЕЛА (АБСОЛЮТНО НЕПОДВИЖНЫЕ) ==========
+// ========== ЛИЧНЫЕ ДЕЛА (ЗАМОРОЖЕНЫ) ==========
 var ldApp = document.getElementById('ldApp');
 
 function homeLD(){
@@ -713,12 +712,13 @@ function reward(d){
     '<tbody>'+rows+'</tbody></table></div></div>';
 }
 
-// ========== ДИПЛОМЫ (БЕЗ ИЗМЕНЕНИЙ) ==========
+// ========== ДИПЛОМЫ (ПОЛНОСТЬЮ РАБОЧИЕ) ==========
 var DIPLOMA_TEMPLATES = {
   'Диплом о высшем образовании магистратура': 'https://s10.iimage.su/s/30/gd7bC5txU1ZZarspdrYQZZqzA7cZMglzwtKCArAR6.png',
   'Диплом о высшем образовании Бакалавриат': 'https://s10.iimage.su/s/01/gAXX41KxVCFMrw3P4QvOom30R4QK2LvitAH2zVnwo.png',
   'Диплом о среднем профессиональном образовании': 'https://s10.iimage.su/s/01/gZLrmfCxrezlo9wOzzI94NwkfjoO7oSCcKQFpGXdU.png'
 };
+
 var currentDiplomaIdx = null;
 
 function renderDiplomaList(){
@@ -759,22 +759,195 @@ function renderDiplomaList(){
   });
   container.innerHTML = html;
 }
-// Остальные функции дипломов как были (работают)
-async function createDiploma(){ /* ... */ }
-function viewDiploma(id){ /* ... */ }
-function editDiploma(id){ /* ... */ }
-function updateDiplomaBackground(){ /* ... */ }
-function generateDiplomaInputs(fields, readonly){ return ''; }
-async function saveDiploma(){ /* ... */ }
-async function deleteDiploma(id){ /* ... */ }
-function backToDiplomaList(){ /* ... */ }
-function printDiploma(id){ /* ... */ }
 
-// ========== АДМИНКА ==========
-async function loadAdminUsers(){ /* ... */ }
-async function createUser(e){ /* ... */ }
-async function updateUserRole(userId, newRole){ /* ... */ }
-async function deleteUser(userId){ /* ... */ }
+async function createDiploma(){
+  if(!hasPerm('diplomas', 'create') || !supabaseClient) return;
+  var id = 'dip_' + Date.now();
+  var newDip = { 
+    id: id, title: 'Новый диплом', date: new Date().toLocaleDateString('ru-RU'), 
+    type: 'Диплом о высшем образовании магистратура', fields: {} 
+  };
+  var res = await supabaseClient.from('diplomas').insert([newDip]);
+  if(!res.error){
+    diplomas.push(newDip);
+    updateCounters();
+    setTimeout(function(){ editDiploma(id); }, 200);
+  } else {
+    alert('Ошибка создания диплома');
+  }
+}
+
+function viewDiploma(id){
+  if(!hasPerm('diplomas', 'view')) return;
+  var d = diplomas.find(function(x){ return x.id === id; });
+  if(!d) return;
+  document.getElementById('diplomaList').style.display = 'none';
+  var editor = document.getElementById('diplomaEditor');
+  editor.style.display = 'block';
+  currentDiplomaIdx = id;
+  var bgUrl = DIPLOMA_TEMPLATES[d.type] || DIPLOMA_TEMPLATES['Диплом о высшем образовании магистратура'];
+  editor.innerHTML = '<div class="ld-toolbar">'+
+    '<button class="btn-back" onclick="backToDiplomaList()">← К списку</button>'+
+    '<span style="color:#d4af37;font-weight:600;">👁 '+d.type+': '+d.title+'</span>'+
+    '<button class="btn btn-print" onclick="window.print()">🖨</button></div>'+
+    '<div class="page-wrapper"><div class="diploma-container">'+
+    '<img src="'+bgUrl+'" alt="Бланк" class="diploma-bg">'+generateDiplomaInputs(d.fields, true)+'</div></div>';
+}
+
+function editDiploma(id){
+  if(!hasPerm('diplomas', 'edit')) return;
+  var d = diplomas.find(function(x){ return x.id === id; });
+  if(!d) return;
+  document.getElementById('diplomaList').style.display = 'none';
+  var editor = document.getElementById('diplomaEditor');
+  editor.style.display = 'block';
+  currentDiplomaIdx = id;
+  var bgUrl = DIPLOMA_TEMPLATES[d.type] || DIPLOMA_TEMPLATES['Диплом о высшем образовании магистратура'];
+  editor.innerHTML = '<div class="ld-toolbar">'+
+    '<button class="btn-back" onclick="backToDiplomaList()">← К списку</button>'+
+    '<input type="text" id="diplomaTitleInput" value="'+(d.title||'')+'" placeholder="Название">'+
+    '<select id="diplomaTypeInput" onchange="updateDiplomaBackground()">'+
+    '<option '+(d.type==='Диплом о высшем образовании магистратура'?'selected':'')+'>Диплом о высшем образовании магистратура</option>'+
+    '<option '+(d.type==='Диплом о высшем образовании Бакалавриат'?'selected':'')+'>Диплом о высшем образовании Бакалавриат</option>'+
+    '<option '+(d.type==='Диплом о среднем профессиональном образовании'?'selected':'')+'>Диплом о среднем профессиональном образовании</option></select>'+
+    '<button class="btn-save" onclick="saveDiploma()">💾</button>'+
+    '<button class="btn btn-print" onclick="window.print()">🖨</button></div>'+
+    '<div class="page-wrapper"><div class="diploma-container">'+
+    '<img src="'+bgUrl+'" alt="Бланк" class="diploma-bg" id="diplomaBg">'+generateDiplomaInputs(d.fields, false)+'</div></div>';
+}
+
+function updateDiplomaBackground(){
+  var type = document.getElementById('diplomaTypeInput').value;
+  var bg = document.getElementById('diplomaBg');
+  if(bg && DIPLOMA_TEMPLATES[type]) bg.src = DIPLOMA_TEMPLATES[type];
+}
+
+function generateDiplomaInputs(fields, readonly){
+  var positions = [
+    {top:"4.06%",left:"70.2%",width:"13.8%",key:"f1"},{top:"9.85%",left:"83.1%",width:"14.6%",key:"f2"},
+    {top:"16.65%",left:"54.2%",width:"44%",key:"f3"},{top:"22.59%",left:"54.2%",width:"43.8%",key:"f4"},
+    {top:"28.54%",left:"69.9%",width:"5.1%",key:"f5"},{top:"33.07%",left:"54.4%",width:"44.3%",key:"f6"},
+    {top:"40%",left:"68.6%",width:"30.8%",key:"f7"},{top:"45.52%",left:"53.6%",width:"45.2%",key:"f8"},
+    {top:"55.14%",left:"67.7%",width:"29%",key:"f9"},{top:"60.94%",left:"53.9%",width:"44.1%",key:"f10"},
+    {top:"64.62%",left:"73.5%",width:"24.6%",key:"f11"},{top:"68.87%",left:"53.6%",width:"45.2%",key:"f12"},
+    {top:"72.83%",left:"54.2%",width:"45.1%",key:"f13"},{top:"79.62%",left:"63.4%",width:"25.8%",key:"f14"},
+    {top:"82.74%",left:"55.2%",width:"41.2%",key:"f15"},{top:"85.85%",left:"71.8%",width:"25%",key:"f16"},
+    {top:"88.54%",left:"54.9%",width:"41.3%",key:"f17"},{top:"93.49%",left:"72.5%",width:"24.5%",key:"f18"}
+  ];
+  var html = '';
+  positions.forEach(function(p){
+    var val = (fields && fields[p.key]) ? fields[p.key] : '';
+    html += '<input type="text" class="diploma-input" style="top:'+p.top+';left:'+p.left+';width:'+p.width+';height:3.5%" '+
+      'data-key="'+p.key+'" value="'+val+'" '+(readonly ? 'readonly' : '')+'>';
+  });
+  return html;
+}
+
+async function saveDiploma(){
+  if(!hasPerm('diplomas', 'edit') || !currentDiplomaIdx || !supabaseClient) return;
+  var d = diplomas.find(function(x){ return x.id === currentDiplomaIdx; });
+  if(!d) return;
+  var updateData = {};
+  updateData.title = document.getElementById('diplomaTitleInput').value;
+  updateData.type = document.getElementById('diplomaTypeInput').value;
+  updateData.date = d.date || new Date().toLocaleDateString('ru-RU');
+  var fieldsData = {};
+  document.querySelectorAll('.diploma-input[data-key]').forEach(function(inp){
+    fieldsData[inp.dataset.key] = inp.value;
+  });
+  updateData.fields = fieldsData;
+  var res = await supabaseClient.from('diplomas').update(updateData).eq('id', currentDiplomaIdx);
+  if(!res.error){
+    d.title = updateData.title;
+    d.type = updateData.type;
+    d.fields = fieldsData;
+    alert("✅ Сохранено");
+  } else {
+    alert('Ошибка сохранения');
+  }
+}
+
+async function deleteDiploma(id){
+  if(!hasPerm('diplomas', 'delete') || !supabaseClient) return;
+  if(confirm("Удалить диплом?")){
+    var res = await supabaseClient.from('diplomas').delete().eq('id', id);
+    if(!res.error){
+      diplomas = diplomas.filter(function(d){ return d.id !== id; });
+      updateCounters();
+      backToDiplomaList();
+    }
+  }
+}
+
+function backToDiplomaList(){
+  document.getElementById('diplomaList').style.display = 'block';
+  document.getElementById('diplomaEditor').style.display = 'none';
+  renderDiplomaList();
+}
+
+function printDiploma(id){
+  editDiploma(id);
+  setTimeout(function(){ window.print(); }, 300);
+}
+
+// ========== АДМИНИСТРИРОВАНИЕ ==========
+async function loadAdminUsers(){
+  if(!hasPerm('admin', true) || !supabaseClient) return;
+  var resp = await supabaseClient.from('users').select('*');
+  var adminUsersList = document.getElementById('adminUsersList');
+  if(!adminUsersList) return;
+  var html = (resp.data || []).map(function(u){
+    var options = Object.keys(ROLES).map(function(r){
+      return '<option value="'+r+'" '+(u.role===r?'selected':'')+'>'+r+'</option>';
+    }).join('');
+    var delBtn = u.username !== ADMIN_CREDS.username ? '<button class="btn btn-del" onclick="deleteUser(\''+u.id+'\')">🗑</button>' : '';
+    return '<div class="admin-user-item"><b>'+u.username+'</b>'+
+      '<span class="role-badge">'+u.role+'</span>'+
+      '<select onchange="updateUserRole(\''+u.id+'\', this.value)" '+(u.username === ADMIN_CREDS.username ? 'disabled' : '')+'>'+
+      options+'</select>'+delBtn+'</div>';
+  }).join('');
+  adminUsersList.innerHTML = html;
+}
+
+async function createUser(e){
+  e.preventDefault();
+  if(!hasPerm('admin', true) || !supabaseClient) return;
+  var username = document.getElementById('newUsername').value.trim();
+  var password = document.getElementById('newPassword').value;
+  var role = document.getElementById('newRole').value;
+  if(username.length < 3 || password.length < 6){
+    alert('Имя пользователя (мин. 3) и пароль (мин. 6) должны быть длиннее');
+    return;
+  }
+  var checkResp = await supabaseClient.from('users').select('id').eq('username', username).single();
+  if(checkResp.data){ alert('Пользователь уже существует'); return; }
+  var res = await supabaseClient.from('users').insert([{ 
+    id: 'user_'+Date.now(), username: username, password: password, role: role 
+  }]);
+  if(!res.error){
+    document.getElementById('newUsername').value = '';
+    document.getElementById('newPassword').value = '';
+    loadAdminUsers();
+    alert('Пользователь создан');
+  } else {
+    alert('Ошибка создания пользователя');
+  }
+}
+
+async function updateUserRole(userId, newRole){
+  if(!hasPerm('admin', true) || !supabaseClient) return;
+  await supabaseClient.from('users').update({ role: newRole }).eq('id', userId);
+  loadAdminUsers();
+}
+
+async function deleteUser(userId){
+  if(!hasPerm('admin', true) || !supabaseClient) return;
+  if(confirm('Удалить пользователя?')){
+    await supabaseClient.from('users').delete().eq('id', userId);
+    loadAdminUsers();
+  }
+}
 </script>
+
 </body>
 </html>
