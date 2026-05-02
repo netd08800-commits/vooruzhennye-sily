@@ -147,19 +147,22 @@
         table.full thead th{text-align:center;font-size:9pt;font-weight:700;background:#f8f8f8;vertical-align:middle;line-height:1.3;padding:2mm 1.5mm;color:#000}
         table.full .num{width:9mm;font-weight:bold;text-align:center;vertical-align:middle}
         table.full tbody tr{height:9.5mm;max-height:9.5mm}
-        table.full td[contenteditable]{
+        table.full .cell-edit{
+            display:block;
+            width:100%;
+            height:100%;
+            min-height:100%;
+            max-height:100%;
             overflow:hidden!important;
             white-space:pre-wrap!important;
-            height:9.5mm!important;
-            max-height:9.5mm!important;
             line-height:4.2mm!important;
             word-break:break-word;
-            vertical-align:bottom!important;
             outline:none!important;
             box-shadow:none!important;
             background:transparent!important;
+            cursor:text;
         }
-        table.full td[contenteditable]:focus{
+        table.full .cell-edit:focus{
             outline:none!important;
             box-shadow:none!important;
             background:transparent!important;
@@ -754,11 +757,11 @@ function disc(d){
   var rows = '';
   for(var i=1;i<=14;i++){
     rows += '<tr><td class="num">'+i+'</td>'+
-      '<td contenteditable data-key="d1_'+i+'">'+escapeHtml(d['d1_'+i]||'')+'</td>'+
-      '<td contenteditable data-key="d2_'+i+'">'+escapeHtml(d['d2_'+i]||'')+'</td>'+
-      '<td contenteditable data-key="d3_'+i+'">'+escapeHtml(d['d3_'+i]||'')+'</td>'+
-      '<td contenteditable data-key="d4_'+i+'">'+escapeHtml(d['d4_'+i]||'')+'</td>'+
-      '<td contenteditable data-key="d5_'+i+'">'+escapeHtml(d['d5_'+i]||'')+'</td>'+
+      '<td><div class="cell-edit" contenteditable data-key="d1_'+i+'">'+escapeHtml(d['d1_'+i]||'')+'</div></td>'+
+      '<td><div class="cell-edit" contenteditable data-key="d2_'+i+'">'+escapeHtml(d['d2_'+i]||'')+'</div></td>'+
+      '<td><div class="cell-edit" contenteditable data-key="d3_'+i+'">'+escapeHtml(d['d3_'+i]||'')+'</div></td>'+
+      '<td><div class="cell-edit" contenteditable data-key="d4_'+i+'">'+escapeHtml(d['d4_'+i]||'')+'</div></td>'+
+      '<td><div class="cell-edit" contenteditable data-key="d5_'+i+'">'+escapeHtml(d['d5_'+i]||'')+'</div></td>'+
       '<td class="chk-col"><input type="checkbox" data-key="d6_'+i+'" '+(d['d6_'+i]?'checked':'')+'></td></tr>';
   }
   return '<div class="page-flex"><h3>ЛИСТ ДИСЦИПЛИНАРНЫХ ВЗЫСКАНИЙ</h3><div class="table-wrap"><table class="full">'+
@@ -770,10 +773,10 @@ function reward(d){
   var rows = '';
   for(var i=1;i<=14;i++){
     rows += '<tr><td class="num">'+i+'</td>'+
-      '<td contenteditable data-key="r1_'+i+'">'+escapeHtml(d['r1_'+i]||'')+'</td>'+
-      '<td contenteditable data-key="r2_'+i+'">'+escapeHtml(d['r2_'+i]||'')+'</td>'+
-      '<td contenteditable data-key="r3_'+i+'">'+escapeHtml(d['r3_'+i]||'')+'</td>'+
-      '<td contenteditable data-key="r4_'+i+'">'+escapeHtml(d['r4_'+i]||'')+'</td></tr>';
+      '<td><div class="cell-edit" contenteditable data-key="r1_'+i+'">'+escapeHtml(d['r1_'+i]||'')+'</div></td>'+
+      '<td><div class="cell-edit" contenteditable data-key="r2_'+i+'">'+escapeHtml(d['r2_'+i]||'')+'</div></td>'+
+      '<td><div class="cell-edit" contenteditable data-key="r3_'+i+'">'+escapeHtml(d['r3_'+i]||'')+'</div></td>'+
+      '<td><div class="cell-edit" contenteditable data-key="r4_'+i+'">'+escapeHtml(d['r4_'+i]||'')+'</div></td></tr>';
   }
   return '<div class="page-flex"><h3>ЛИСТ ПООЩРЕНИЙ</h3><div class="table-wrap"><table class="full">'+
     '<colgroup><col style="width:9mm;"><col style="width:28%;"><col style="width:17%;"><col style="width:22%;"><col style="width:28%;"></colgroup>'+
