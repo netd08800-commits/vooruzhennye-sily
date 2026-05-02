@@ -143,16 +143,17 @@
         .uline{display:inline-block;border-bottom:1px solid #000;overflow:hidden;white-space:nowrap;vertical-align:bottom;height:1.5em;line-height:1.5em}
 
         table.full{width:100%;border-collapse:collapse;table-layout:fixed;font-size:10.5pt;flex:1;color:#000;height:100%}
-        table.full th,table.full td{border:1px solid #000;padding:1.5mm 2mm;vertical-align:top;overflow:hidden;word-break:break-word}
+        table.full th,table.full td{border:1px solid #000;padding:1.5mm 2mm;vertical-align:top;overflow:hidden;word-break:break-word;position:relative}
         table.full thead th{text-align:center;font-size:9pt;font-weight:700;background:#f8f8f8;vertical-align:middle;line-height:1.3;padding:2mm 1.5mm;color:#000}
         table.full .num{width:9mm;font-weight:bold;text-align:center;vertical-align:middle}
         table.full tbody tr{height:9.5mm;max-height:9.5mm}
         table.full .cell-edit{
+            position:absolute;
+            top:1.5mm;
+            left:2mm;
+            right:2mm;
+            bottom:1.5mm;
             display:block;
-            width:100%;
-            height:100%;
-            min-height:100%;
-            max-height:100%;
             overflow:hidden!important;
             white-space:pre-wrap!important;
             line-height:4.2mm!important;
@@ -407,12 +408,18 @@ function hideTabLoader(){
 function insertLineBreakAtCursor(){
   var selection = window.getSelection();
   if(!selection || !selection.rangeCount) return;
+
   var range = selection.getRangeAt(0);
   range.deleteContents();
+
   var br = document.createElement('br');
   range.insertNode(br);
-  range.setStartAfter(br);
-  range.setEndAfter(br);
+
+  var zero = document.createTextNode('\u200B');
+  br.parentNode.insertBefore(zero, br.nextSibling);
+
+  range.setStart(zero, 1);
+  range.setEnd(zero, 1);
   selection.removeAllRanges();
   selection.addRange(range);
 }
