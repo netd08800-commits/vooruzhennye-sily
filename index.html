@@ -36,6 +36,38 @@
         .auth-toggle a:hover{text-decoration:underline}
         .auth-error{background:#3a1a1a;border:1px solid #5a2a2a;color:#d88a8a;padding:10px;border-radius:4px;margin-bottom:15px;font-size:13px;text-align:center;display:none}
 
+        .tab-loader{
+            position:fixed;
+            inset:0;
+            background:rgba(10,15,8,.55);
+            backdrop-filter:blur(3px);
+            z-index:5000;
+            display:none;
+            align-items:center;
+            justify-content:center;
+        }
+        .tab-loader.active{display:flex}
+        .loader-box{
+            background:#1e2b1c;
+            border:1px solid #8b7d3c;
+            border-radius:10px;
+            padding:24px 35px;
+            text-align:center;
+            color:#d4af37;
+            font-weight:700;
+            box-shadow:0 15px 40px rgba(0,0,0,.45);
+        }
+        .loader-spinner{
+            width:46px;
+            height:46px;
+            border:4px solid #2a3a28;
+            border-top-color:#d4af37;
+            border-radius:50%;
+            margin:0 auto 12px;
+            animation:spin .8s linear infinite;
+        }
+        @keyframes spin{to{transform:rotate(360deg)}}
+
         .mil-header{background:linear-gradient(180deg,#2c3e2a 0%,#1e2e1c 100%);border-bottom:3px solid #8b7d3c}
         .mil-header-inner{max-width:1300px;margin:auto;display:flex;align-items:center;padding:12px 30px;gap:20px}
         .mil-emblem{width:70px;height:70px;flex-shrink:0}
@@ -103,98 +135,45 @@
         .ld-toolbar input,.ld-toolbar select{padding:10px 14px;background:#1e2b1c;border:1px solid #2a3a28;border-radius:4px;color:#c8d4b8;font-size:14px;font-family:inherit}
         .ld-toolbar input:focus,.ld-toolbar select:focus{outline:none;border-color:#4a6a3a}
 
-        /* ====== СТРАНИЦЫ И ТАБЛИЦЫ ====== */
-        .page{width:210mm;height:297mm;background:white;margin:20px auto;padding:20mm;box-sizing:border-box;position:relative;font-family:"Times New Roman",serif;color:#000; overflow:hidden;}
-        .page-flex{width:210mm;height:297mm;background:white;margin:20px auto;padding:15mm;box-sizing:border-box;position:relative;font-family:"Times New Roman",serif;color:#000;display:flex;flex-direction:column; overflow:hidden;}
+        .page{width:210mm;height:297mm;background:white;margin:20px auto;padding:20mm;box-sizing:border-box;position:relative;font-family:"Times New Roman",serif;color:#000;overflow:hidden}
+        .page-flex{width:210mm;height:297mm;background:white;margin:20px auto;padding:15mm;box-sizing:border-box;position:relative;font-family:"Times New Roman",serif;color:#000;display:flex;flex-direction:column;overflow:hidden}
         .page-flex h3{margin:0 0 4mm 0;text-align:center;font-size:15pt;flex-shrink:0;color:#000}
-        .page-flex .table-wrap{flex:1;display:flex;flex-direction:column; overflow:hidden;}
+        .page-flex .table-wrap{flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden}
+        .pg-center{text-align:center}
+        .uline{display:inline-block;border-bottom:1px solid #000;overflow:hidden;white-space:nowrap;vertical-align:bottom;height:1.5em;line-height:1.5em}
 
-        table.full{width:100%;border-collapse:collapse;table-layout:fixed;font-size:10.5pt;color:#000;}
-        table.full th,table.full td{border:1px solid #000;padding:1.5mm 2mm;vertical-align:top; overflow:hidden; word-break:break-word;}
+        table.full{width:100%;border-collapse:collapse;table-layout:fixed;font-size:10.5pt;flex:1;color:#000;height:100%}
+        table.full th,table.full td{border:1px solid #000;padding:1.5mm 2mm;vertical-align:top;overflow:hidden;word-break:break-word}
         table.full thead th{text-align:center;font-size:9pt;font-weight:700;background:#f8f8f8;vertical-align:middle;line-height:1.3;padding:2mm 1.5mm;color:#000}
         table.full .num{width:9mm;font-weight:bold;text-align:center;vertical-align:middle}
-
-        /* Многострочные редактируемые ячейки */
-        .cell-content {
-            min-height: 9.5mm;
-            white-space: normal;
-            line-height: 1.2;
-            outline: none;
-            word-break: break-word;
+        table.full tbody tr{height:9.5mm;max-height:9.5mm}
+        table.full td[contenteditable]{
+            overflow:hidden!important;
+            white-space:pre-wrap!important;
+            height:9.5mm!important;
+            max-height:9.5mm!important;
+            line-height:4.3mm!important;
+            word-break:break-word;
         }
-        .cell-content:focus {
-            outline: 2px solid #2d6cdf;
-            outline-offset: -2px;
-            background: #f0f5ff;
-        }
+        table.full td[contenteditable]:focus{outline:2px solid #2d6cdf;outline-offset:-2px;background:#f0f5ff}
         table.full .chk-col{text-align:center;vertical-align:middle}
 
         .cover{font-family:"Trebuchet MS",Arial,sans-serif}
         .cover .photo-box{position:absolute;top:50mm;right:20mm;width:35mm;height:45mm;border:1.5pt solid #000;display:flex;align-items:center;justify-content:center;font-size:11pt;font-weight:700;text-align:center;line-height:1.4;color:#000}
-        .cover .ftbl{width:100%; border-collapse:collapse; table-layout:fixed; font-size:14pt; color:#000;}
-        .cover .ftbl td{border:none;padding:3mm 2mm;vertical-align:bottom; overflow:hidden;}
-        .cover .ftbl .lbl{white-space:nowrap;width:auto;padding-left:0; width:25%;}
-        .cover .ftbl .lbl2{white-space:nowrap;width:auto;padding-left:8mm; width:25%;}
-        .cover .val-fixed{
-            display:block; width:100%;
-            overflow:hidden; white-space:nowrap;
-            height:12mm; line-height:12mm;
-            border-bottom:1px solid #000;
-        }
-        .fio-field{
-            height:8mm; overflow:hidden; white-space:nowrap;
-            font-size:14pt; color:#000; border-bottom:1px solid #000;
-            text-align:center;
-        }
-        .resp-field{
-            display:inline-block; border-bottom:1px solid #000;
-            width:78%; overflow:hidden; white-space:nowrap; height:1.5em;
-        }
-        .cover [contenteditable] { white-space: nowrap; }
-
-        /* ====== ЗАГРУЗКА ====== */
-        .loading-spinner {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            border: 4px solid rgba(212, 175, 55, 0.2);
-            border-top: 4px solid #d4af37;
-            animation: spin 1s linear infinite;
-            box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
-            margin: 0 auto;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        .loading-text {
-            color: #d4af37;
-            font-size: 16px;
-            letter-spacing: 2px;
-            margin-top: 20px;
-            text-align: center;
-            animation: pulse 1.5s ease-in-out infinite;
-        }
-        @keyframes pulse {
-            0% { opacity: 0.5; }
-            50% { opacity: 1; }
-            100% { opacity: 0.5; }
-        }
-        .loading-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 300px;
-        }
+        .cover .ftbl{width:100%;border-collapse:collapse;table-layout:fixed;font-size:14pt;color:#000}
+        .cover .ftbl td{border:none;padding:3mm 2mm;vertical-align:bottom;overflow:hidden}
+        .cover .ftbl .lbl{white-space:nowrap;width:25%;padding-left:0}
+        .cover .ftbl .lbl2{white-space:nowrap;width:25%;padding-left:8mm}
+        .cover .val-fixed{display:block;width:100%;overflow:hidden;white-space:nowrap;height:12mm;line-height:12mm;border-bottom:1px solid #000}
+        .fio-field{height:8mm;overflow:hidden;white-space:nowrap;font-size:14pt;color:#000;border-bottom:1px solid #000;text-align:center}
+        .resp-field{display:inline-block;border-bottom:1px solid #000;width:78%;overflow:hidden;white-space:nowrap;height:1.5em}
+        [contenteditable]{overflow:hidden;white-space:nowrap}
 
         .diplomas-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px}
         .diplomas-header h2{color:#c8d4b8;font-size:20px}
-
         .diploma-filters{display:flex;gap:10px;flex-wrap:wrap;align-items:center;background:#1e2b1c;padding:12px 15px;border-radius:6px;border:1px solid #2a3a28;margin-bottom:20px}
         .diploma-filters input,.diploma-filters select{padding:8px 12px;background:#1a2818;border:1px solid #2a3a28;border-radius:4px;color:#c8d4b8;font-size:13px;font-family:inherit}
         .diploma-filters input:focus,.diploma-filters select:focus{outline:none;border-color:#4a6a3a}
-
         .diploma-type-section{margin:25px 0}
         .diploma-type-section h3{color:#d4af37;font-size:16px;margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid #2a3a28;display:flex;align-items:center;gap:8px}
         .diploma-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:15px}
@@ -208,27 +187,15 @@
         .page-wrapper{display:flex;justify-content:center;padding:15px 0;background:transparent}
         .diploma-container{position:relative;width:1000px;max-width:100%;background:#fff;box-shadow:0 4px 20px rgba(0,0,0,0.25);border-radius:4px}
         .diploma-bg{display:block;width:100%;height:auto;pointer-events:none}
-        .diploma-input{
-            position:absolute;box-sizing:border-box;
-            background: transparent;
-            border: none;
-            border-bottom: 1px solid transparent;
-            font-family:'Times New Roman',serif;
-            font-size: 24px;
-            color:#1a1a1a;padding:0 4px;text-align:left;
-        }
-        .diploma-input:focus{
-            outline:none;
-            background: transparent;
-            border-bottom: 1px solid rgba(0,0,0,0.2);
-            box-shadow: none;
-        }
+        .diploma-input{position:absolute;box-sizing:border-box;background:transparent;border:none;border-bottom:1px solid transparent;font-family:'Times New Roman',serif;font-size:24px;color:#1a1a1a;padding:0 4px;text-align:left}
+        .diploma-input:focus{outline:none;background:transparent;border-bottom:1px solid rgba(0,0,0,0.2);box-shadow:none}
         .diploma-input[readonly]{background:transparent;border-bottom:1px solid transparent;cursor:default}
 
         .admin-panel{background:linear-gradient(145deg,#2a1a2a,#3a2a3a);border:1px solid #5a3a5a;border-radius:8px;padding:20px;margin-bottom:20px}
         .admin-panel h3{color:#d4af37;margin-bottom:15px;font-size:16px}
         .admin-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
         .admin-form input,.admin-form select{padding:10px;background:#1a2818;border:1px solid #2a3a28;border-radius:4px;color:#e0e0e0;font-size:14px;font-family:inherit}
+        .admin-form input:focus,.admin-form select:focus{outline:none;border-color:#8b7d3c}
         .admin-users-list{margin-top:15px}
         .admin-user-item{display:flex;align-items:center;gap:10px;padding:10px;background:#1e2b1c;border-radius:4px;margin-bottom:8px;flex-wrap:wrap}
         .admin-user-item b{flex:1;min-width:150px;color:#c8d4b8}
@@ -239,8 +206,8 @@
 
         @media print{
             body{background:white!important}
-            .mil-header,.gold-strip,.mil-nav,.mil-footer,.ld-toolbar,.welcome-banner,.dashboard,.info-bar,.section:not(.active),.diplomas-header,.diploma-filters,.diploma-grid,.diploma-card,.diploma-type-section,.auth-overlay,.admin-panel{display:none!important}
-            .page,.page-flex{margin:0;box-shadow:none;page-break-after:always; overflow:visible!important;}
+            .mil-header,.gold-strip,.mil-nav,.mil-footer,.ld-toolbar,.welcome-banner,.dashboard,.info-bar,.section:not(.active),.diplomas-header,.diploma-filters,.diploma-grid,.diploma-card,.diploma-type-section,.auth-overlay,.admin-panel,.tab-loader{display:none!important}
+            .page,.page-flex{margin:0;box-shadow:none;page-break-after:always;overflow:hidden}
             .diploma-container{box-shadow:none!important;max-width:100%!important;margin:0!important;transform:none!important}
             .diploma-input{background:transparent!important;border:none!important;color:#000!important}
             .page-wrapper{padding:0!important}
@@ -248,6 +215,13 @@
     </style>
 </head>
 <body>
+
+<div class="tab-loader" id="tabLoader">
+    <div class="loader-box">
+        <div class="loader-spinner"></div>
+        Загрузка раздела...
+    </div>
+</div>
 
 <!-- ===== АВТОРИЗАЦИЯ ===== -->
 <div class="auth-overlay" id="authOverlay">
@@ -398,8 +372,37 @@ const ROLES = {
   'Модер': { cases: { view: true, create: true, edit: true, delete: true }, diplomas: { view: true, create: true, edit: true, delete: true }, admin: true }
 };
 
-let casesLoaded = false;
-let diplomasLoaded = false;
+function escapeHtml(value){
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function showTabLoader(){
+  var l = document.getElementById('tabLoader');
+  if(l) l.classList.add('active');
+}
+
+function hideTabLoader(){
+  var l = document.getElementById('tabLoader');
+  if(l) l.classList.remove('active');
+}
+
+function insertLineBreakAtCursor(){
+  var selection = window.getSelection();
+  if(!selection || !selection.rangeCount) return;
+  var range = selection.getRangeAt(0);
+  range.deleteContents();
+  var br = document.createElement('br');
+  range.insertNode(br);
+  range.setStartAfter(br);
+  range.setEndAfter(br);
+  selection.removeAllRanges();
+  selection.addRange(range);
+}
 
 document.addEventListener('DOMContentLoaded', function() {
   try {
@@ -500,8 +503,6 @@ function completeLogin(){
 
 function logout(){
   currentUser = null;
-  casesLoaded = false;
-  diplomasLoaded = false;
   localStorage.removeItem('mil_user');
   document.getElementById('authOverlay').style.display = 'flex';
   document.getElementById('loginUsername').value = '';
@@ -534,7 +535,7 @@ function updateUIByRole(){
   document.getElementById('dashDip').style.display = p.diplomas.view ? '' : 'none';
   var isCiv = currentUser.role === 'Гражданский';
   document.getElementById('civilianNotice').style.display = isCiv ? '' : 'none';
-  document.getElementById('mainMessage').textContent = isCiv ? 
+  document.getElementById('mainMessage').textContent = isCiv ?
     'Вы не гос. служащий, чтоб просматривать информацию какую-либо' :
     'Единая информационная система управления кадровым составом Вооружённых сил Региональной Федерации.';
   document.getElementById('btnCreateDip').style.display = p.diplomas.create ? '' : 'none';
@@ -563,13 +564,20 @@ function switchTab(id, btn){
   if(id === 'ld' && !hasPerm('cases', 'view')){ alert('Нет доступа'); return; }
   if(id === 'diplomas' && !hasPerm('diplomas', 'view')){ alert('Нет доступа'); return; }
   if(id === 'admin' && !hasPerm('admin', true)){ alert('Нет доступа'); return; }
-  document.querySelectorAll('.section').forEach(function(s){ s.classList.remove('active'); });
-  document.querySelectorAll('.mil-nav-btn').forEach(function(b){ b.classList.remove('active'); });
-  document.getElementById('sec-'+id).classList.add('active');
-  if(btn) btn.classList.add('active');
-  if(id === 'ld') homeLD();
-  if(id === 'diplomas') renderDiplomaList();
-  if(id === 'admin') loadAdminUsers();
+
+  var needLoader = id === 'ld' || id === 'diplomas';
+  if(needLoader) showTabLoader();
+
+  setTimeout(function(){
+    document.querySelectorAll('.section').forEach(function(s){ s.classList.remove('active'); });
+    document.querySelectorAll('.mil-nav-btn').forEach(function(b){ b.classList.remove('active'); });
+    document.getElementById('sec-'+id).classList.add('active');
+    if(btn) btn.classList.add('active');
+    if(id === 'ld') homeLD();
+    if(id === 'diplomas') renderDiplomaList();
+    if(id === 'admin') loadAdminUsers();
+    hideTabLoader();
+  }, needLoader ? 350 : 0);
 }
 
 async function loadData(){
@@ -577,8 +585,8 @@ async function loadData(){
   try {
     var c = await supabaseClient.from('cases').select('*');
     var d = await supabaseClient.from('diplomas').select('*');
-    if(c.data) { cases = c.data; casesLoaded = true; }
-    if(d.data) { diplomas = d.data; diplomasLoaded = true; }
+    if(c.data) cases = c.data;
+    if(d.data) diplomas = d.data;
     updateCounters();
     if(document.getElementById('sec-ld').classList.contains('active')) homeLD();
     if(document.getElementById('sec-diplomas').classList.contains('active')) renderDiplomaList();
@@ -590,31 +598,32 @@ async function loadData(){
 // ========== ЛИЧНЫЕ ДЕЛА ==========
 var ldApp = document.getElementById('ldApp');
 
+ldApp.addEventListener('keydown', function(e) {
+  if (!e.target.isContentEditable || e.key !== 'Enter') return;
+  e.preventDefault();
+  if (e.shiftKey && e.target.closest('table.full')) {
+    insertLineBreakAtCursor();
+  }
+});
+
+ldApp.addEventListener('paste', function(e){
+  if(!e.target.isContentEditable) return;
+  e.preventDefault();
+  var text = (e.clipboardData || window.clipboardData).getData('text/plain');
+  document.execCommand('insertText', false, text);
+});
+
 function homeLD(){
   if(!hasPerm('cases', 'view')){
     ldApp.innerHTML = '<p style="color:#6a7a5e;padding:20px;">Нет доступа к личным делам</p>';
     return;
   }
-
-  // Показываем загрузку
-  ldApp.innerHTML = `
-    <div class="loading-container">
-      <div class="loading-spinner"></div>
-      <div class="loading-text">ЗАГРУЗКА...</div>
-    </div>`;
-
-  // Через 600 мс отображаем реальный контент
-  setTimeout(function(){
-    if (!casesLoaded) {
-      return;
-    }
-    var createBtn = hasPerm('cases','create') ? '<button class="btn-create" onclick="createCase()">+ Создать дело</button>' : '';
-    ldApp.innerHTML = '<h2>📋 Личные дела военнослужащих</h2>'+
-      '<div class="ld-toolbar" style="margin-bottom:15px;">'+
-      '<input type="text" id="caseSearch" placeholder="🔍 Поиск по названию..." oninput="renderCasesList()">'+
-      '</div>'+createBtn+'<hr><div id="casesList"></div>';
-    renderCasesList();
-  }, 600);
+  var createBtn = hasPerm('cases','create') ? '<button class="btn-create" onclick="createCase()">+ Создать дело</button>' : '';
+  ldApp.innerHTML = '<h2>📋 Личные дела военнослужащих</h2>'+
+    '<div class="ld-toolbar" style="margin-bottom:15px;">'+
+    '<input type="text" id="caseSearch" placeholder="🔍 Поиск по названию..." oninput="renderCasesList()">'+
+    '</div>'+createBtn+'<hr><div id="casesList"></div>';
+  renderCasesList();
 }
 
 function renderCasesList(){
@@ -630,7 +639,7 @@ function renderCasesList(){
   filtered.forEach(function(c){
     var editBtn = hasPerm('cases','edit') ? '<button class="btn btn-edit" onclick="renameCase(\''+c.id+'\')">✏️</button>' : '';
     var delBtn = hasPerm('cases','delete') ? '<button class="btn btn-del" onclick="deleteCase(\''+c.id+'\')">🗑</button>' : '';
-    html += '<div class="case-item"><b>📁 '+c.title+'</b>'+
+    html += '<div class="case-item"><b>📁 '+escapeHtml(c.title)+'</b>'+
       '<button class="btn btn-open" onclick="openCase(\''+c.id+'\')">Открыть</button>'+editBtn+delBtn+'</div>';
   });
   container.innerHTML = html;
@@ -682,7 +691,7 @@ function openCase(id){
   var d = c.data || {};
   ldApp.innerHTML = '<div class="ld-toolbar">'+
     '<button class="btn-back" onclick="homeLD()">← Назад к списку</button>'+
-    '<b style="color:#d4af37;">'+c.title+'</b>'+
+    '<b style="color:#d4af37;">'+escapeHtml(c.title)+'</b>'+
     (hasPerm('cases','edit') ? '<button class="btn-save" onclick="saveCase(\''+id+'\')">💾 Сохранить</button>' : '') +
     '</div>'+
     cover(d)+disc(d)+reward(d);
@@ -693,7 +702,8 @@ async function saveCase(id){
   var data = {};
   document.querySelectorAll('[data-key]').forEach(function(el){
     if(el.type === 'checkbox') data[el.dataset.key] = el.checked;
-    else data[el.dataset.key] = el.innerText || el.value;
+    else if(el.isContentEditable) data[el.dataset.key] = el.innerText || '';
+    else data[el.dataset.key] = el.value || '';
   });
   var res = await supabaseClient.from('cases').update({ data: data }).eq('id', id);
   if(!res.error){
@@ -708,76 +718,52 @@ async function saveCase(id){
 function cover(d){
   return '<div class="page cover">'+
     '<div class="photo-box">МЕСТО ДЛЯ<br>ФОТОГРАФИИ</div>'+
-    '<div class="pg-center" style="font-size:14pt;font-weight:700;color:#000;">'+
-    'Региональная Федерация<br>Вооруженные силы Региональной Федерации</div>'+
-    '<div class="pg-center" style="margin-top:5mm;">'+
-    '<img src="https://s2.radikal.cloud/2026/04/29/dfdf_JGfgeca8786ddfc9c6341.webp" style="height:42mm;" alt="герб"></div>'+
-    '<div class="pg-center" style="margin-top:14mm;">'+
-    '<div style="font-size:31pt;font-weight:700;color:#000;">ЛИЧНОЕ ДЕЛО</div>'+
-    '<div style="font-size:16pt;font-weight:700;margin-top:1mm;color:#000;">ВОЕННОСЛУЖАЩЕГО</div>'+
-    '<div style="font-size:14pt;margin-top:3mm;color:#000;">'+
-    '№<span contenteditable data-key="num" class="uline" style="width:40mm;">'+(d.num||'')+'</span></div></div>'+
-    '<div style="margin-top:14mm;">'+
-    '<div contenteditable data-key="fio" class="fio-field">'+(d.fio||'')+'</div>'+
-    '<div class="pg-center" style="font-size:12pt;margin-top:1mm;color:#000;">( Фамилия, Имя, Отчество )</div></div>'+
+    '<div class="pg-center" style="font-size:14pt;font-weight:700;color:#000;">Региональная Федерация<br>Вооруженные силы Региональной Федерации</div>'+
+    '<div class="pg-center" style="margin-top:5mm;"><img src="https://s2.radikal.cloud/2026/04/29/dfdf_JGfgeca8786ddfc9c6341.webp" style="height:42mm;" alt="герб"></div>'+
+    '<div class="pg-center" style="margin-top:14mm;"><div style="font-size:31pt;font-weight:700;color:#000;">ЛИЧНОЕ ДЕЛО</div><div style="font-size:16pt;font-weight:700;margin-top:1mm;color:#000;">ВОЕННОСЛУЖАЩЕГО</div>'+
+    '<div style="font-size:14pt;margin-top:3mm;color:#000;">№<span contenteditable data-key="num" class="uline" style="width:40mm;">'+escapeHtml(d.num||'')+'</span></div></div>'+
+    '<div style="margin-top:14mm;"><div contenteditable data-key="fio" class="fio-field">'+escapeHtml(d.fio||'')+'</div><div class="pg-center" style="font-size:12pt;margin-top:1mm;color:#000;">( Фамилия, Имя, Отчество )</div></div>'+
     '<table class="ftbl" style="margin-top:6mm;">'+
-    '<tr><td class="lbl">дата рождения</td><td><div contenteditable data-key="birth" class="val-fixed">'+(d.birth||'')+'</div></td>'+
-    '<td class="lbl2">пол</td><td><div contenteditable data-key="gender" class="val-fixed">'+(d.gender||'')+'</div></td></tr>'+
-    '<tr><td class="lbl">место рождения</td><td><div contenteditable data-key="place" class="val-fixed">'+(d.place||'')+'</div></td>'+
-    '<td class="lbl2">гражданство</td><td><div contenteditable data-key="cit" class="val-fixed">'+(d.cit||'')+'</div></td></tr>'+
-    '<tr><td class="lbl">образование</td><td><div contenteditable data-key="edu" class="val-fixed">'+(d.edu||'')+'</div></td>'+
-    '<td class="lbl2">№ паспорта</td><td><div contenteditable data-key="pass" class="val-fixed">'+(d.pass||'')+'</div></td></tr></table>'+
-    '<div style="margin-top:10mm;font-size:14pt;color:#000;">призван «<span contenteditable data-key="draft_d" class="uline" style="width:8mm;">'+(d.draft_d||'')+'</span>» '+
-    '<span contenteditable data-key="draft_m" class="uline" style="width:50mm;">'+(d.draft_m||'')+'</span> 20'+
-    '<span contenteditable data-key="draft_y" class="uline" style="width:12mm;">'+(d.draft_y||'')+'</span> г.</div>'+
-    '<div style="margin-top:12mm;font-size:14pt;color:#000;">ответственный <span contenteditable data-key="resp" class="resp-field">'+(d.resp||'')+'</span>'+
-    '<div class="pg-center" style="font-size:12pt;margin-top:1mm;color:#000;">( Фамилия, Имя, Отчество )</div></div>'+
-    '<div style="position:absolute;bottom:20mm;left:20mm;right:20mm;text-align:center;">'+
-    '<div style="border-top:1px solid #000;padding-top:2mm;">'+
-    '<span style="font-size:14pt;font-weight:700;color:#000;">Военный комиссариат ВС РФ</span></div>'+
-    '<div style="font-size:12pt;font-weight:700;margin-top:1mm;color:#000;">(орган военно-мобилизационной и учетно-призывной работы)</div></div></div>';
+    '<tr><td class="lbl">дата рождения</td><td><div contenteditable data-key="birth" class="val-fixed">'+escapeHtml(d.birth||'')+'</div></td><td class="lbl2">пол</td><td><div contenteditable data-key="gender" class="val-fixed">'+escapeHtml(d.gender||'')+'</div></td></tr>'+
+    '<tr><td class="lbl">место рождения</td><td><div contenteditable data-key="place" class="val-fixed">'+escapeHtml(d.place||'')+'</div></td><td class="lbl2">гражданство</td><td><div contenteditable data-key="cit" class="val-fixed">'+escapeHtml(d.cit||'')+'</div></td></tr>'+
+    '<tr><td class="lbl">образование</td><td><div contenteditable data-key="edu" class="val-fixed">'+escapeHtml(d.edu||'')+'</div></td><td class="lbl2">№ паспорта</td><td><div contenteditable data-key="pass" class="val-fixed">'+escapeHtml(d.pass||'')+'</div></td></tr></table>'+
+    '<div style="margin-top:10mm;font-size:14pt;color:#000;">призван «<span contenteditable data-key="draft_d" class="uline" style="width:8mm;">'+escapeHtml(d.draft_d||'')+'</span>» '+
+    '<span contenteditable data-key="draft_m" class="uline" style="width:50mm;">'+escapeHtml(d.draft_m||'')+'</span> 20<span contenteditable data-key="draft_y" class="uline" style="width:12mm;">'+escapeHtml(d.draft_y||'')+'</span> г.</div>'+
+    '<div style="margin-top:12mm;font-size:14pt;color:#000;">ответственный <span contenteditable data-key="resp" class="resp-field">'+escapeHtml(d.resp||'')+'</span><div class="pg-center" style="font-size:12pt;margin-top:1mm;color:#000;">( Фамилия, Имя, Отчество )</div></div>'+
+    '<div style="position:absolute;bottom:20mm;left:20mm;right:20mm;text-align:center;"><div style="border-top:1px solid #000;padding-top:2mm;"><span style="font-size:14pt;font-weight:700;color:#000;">Военный комиссариат ВС РФ</span></div><div style="font-size:12pt;font-weight:700;margin-top:1mm;color:#000;">(орган военно-мобилизационной и учетно-призывной работы)</div></div></div>';
 }
 
 function disc(d){
   var rows = '';
   for(var i=1;i<=14;i++){
     rows += '<tr><td class="num">'+i+'</td>'+
-      '<td><div contenteditable class="cell-content" data-key="d1_'+i+'">'+(d['d1_'+i]||'')+'</div></td>'+
-      '<td><div contenteditable class="cell-content" data-key="d2_'+i+'">'+(d['d2_'+i]||'')+'</div></td>'+
-      '<td><div contenteditable class="cell-content" data-key="d3_'+i+'">'+(d['d3_'+i]||'')+'</div></td>'+
-      '<td><div contenteditable class="cell-content" data-key="d4_'+i+'">'+(d['d4_'+i]||'')+'</div></td>'+
-      '<td><div contenteditable class="cell-content" data-key="d5_'+i+'">'+(d['d5_'+i]||'')+'</div></td>'+
+      '<td contenteditable data-key="d1_'+i+'">'+escapeHtml(d['d1_'+i]||'')+'</td>'+
+      '<td contenteditable data-key="d2_'+i+'">'+escapeHtml(d['d2_'+i]||'')+'</td>'+
+      '<td contenteditable data-key="d3_'+i+'">'+escapeHtml(d['d3_'+i]||'')+'</td>'+
+      '<td contenteditable data-key="d4_'+i+'">'+escapeHtml(d['d4_'+i]||'')+'</td>'+
+      '<td contenteditable data-key="d5_'+i+'">'+escapeHtml(d['d5_'+i]||'')+'</td>'+
       '<td class="chk-col"><input type="checkbox" data-key="d6_'+i+'" '+(d['d6_'+i]?'checked':'')+'></td></tr>';
   }
-  return '<div class="page-flex"><h3>ЛИСТ ДИСЦИПЛИНАРНЫХ ВЗЫСКАНИЙ</h3>'+
-    '<div class="table-wrap"><table class="full">'+
-    '<colgroup><col style="width:9mm;"><col style="width:22%;"><col style="width:14%;">'+
-    '<col style="width:22%;"><col style="width:13%;"><col style="width:13%;"><col style="width:12%;"></colgroup>'+
-    '<thead><tr><th>№<br>пп</th><th>Фамилия, имя,<br>отчество<br>ответственного</th>'+
-    '<th>Дата и номер<br>выдачи<br>приказа</th><th>Краткое<br>содержание<br>проступка</th>'+
-    '<th>Вид<br>взыскания</th><th>Основание</th><th>Отметка<br>о снятии<br>взыскания</th></tr></thead>'+
-    '<tbody>'+rows+'</tbody></table></div></div>';
+  return '<div class="page-flex"><h3>ЛИСТ ДИСЦИПЛИНАРНЫХ ВЗЫСКАНИЙ</h3><div class="table-wrap"><table class="full">'+
+    '<colgroup><col style="width:9mm;"><col style="width:22%;"><col style="width:14%;"><col style="width:22%;"><col style="width:13%;"><col style="width:13%;"><col style="width:12%;"></colgroup>'+
+    '<thead><tr><th>№<br>пп</th><th>Фамилия, имя,<br>отчество<br>ответственного</th><th>Дата и номер<br>выдачи<br>приказа</th><th>Краткое<br>содержание<br>проступка</th><th>Вид<br>взыскания</th><th>Основание</th><th>Отметка<br>о снятии<br>взыскания</th></tr></thead><tbody>'+rows+'</tbody></table></div></div>';
 }
 
 function reward(d){
   var rows = '';
   for(var i=1;i<=14;i++){
     rows += '<tr><td class="num">'+i+'</td>'+
-      '<td><div contenteditable class="cell-content" data-key="r1_'+i+'">'+(d['r1_'+i]||'')+'</div></td>'+
-      '<td><div contenteditable class="cell-content" data-key="r2_'+i+'">'+(d['r2_'+i]||'')+'</div></td>'+
-      '<td><div contenteditable class="cell-content" data-key="r3_'+i+'">'+(d['r3_'+i]||'')+'</div></td>'+
-      '<td><div contenteditable class="cell-content" data-key="r4_'+i+'">'+(d['r4_'+i]||'')+'</div></td></tr>';
+      '<td contenteditable data-key="r1_'+i+'">'+escapeHtml(d['r1_'+i]||'')+'</td>'+
+      '<td contenteditable data-key="r2_'+i+'">'+escapeHtml(d['r2_'+i]||'')+'</td>'+
+      '<td contenteditable data-key="r3_'+i+'">'+escapeHtml(d['r3_'+i]||'')+'</td>'+
+      '<td contenteditable data-key="r4_'+i+'">'+escapeHtml(d['r4_'+i]||'')+'</td></tr>';
   }
-  return '<div class="page-flex"><h3>ЛИСТ ПООЩРЕНИЙ</h3>'+
-    '<div class="table-wrap"><table class="full">'+
-    '<colgroup><col style="width:9mm;"><col style="width:28%;"><col style="width:17%;">'+
-    '<col style="width:22%;"><col style="width:28%;"></colgroup>'+
-    '<thead><tr><th>№<br>пп</th><th>Фамилия, имя,<br>отчество<br>ответственного</th>'+
-    '<th>Дата и номер<br>выдачи<br>приказа</th><th>Вид<br>поощрения</th><th>За что</th></tr></thead>'+
-    '<tbody>'+rows+'</tbody></table></div></div>';
+  return '<div class="page-flex"><h3>ЛИСТ ПООЩРЕНИЙ</h3><div class="table-wrap"><table class="full">'+
+    '<colgroup><col style="width:9mm;"><col style="width:28%;"><col style="width:17%;"><col style="width:22%;"><col style="width:28%;"></colgroup>'+
+    '<thead><tr><th>№<br>пп</th><th>Фамилия, имя,<br>отчество<br>ответственного</th><th>Дата и номер<br>выдачи<br>приказа</th><th>Вид<br>поощрения</th><th>За что</th></tr></thead><tbody>'+rows+'</tbody></table></div></div>';
 }
 
-// ========== ДИПЛОМЫ (с анимацией загрузки) ==========
+// ========== ДИПЛОМЫ ==========
 var DIPLOMA_TEMPLATES = {
   'Диплом о высшем образовании магистратура': 'https://s10.iimage.su/s/30/gd7bC5txU1ZZarspdrYQZZqzA7cZMglzwtKCArAR6.png',
   'Диплом о высшем образовании Бакалавриат': 'https://s10.iimage.su/s/01/gAXX41KxVCFMrw3P4QvOom30R4QK2LvitAH2zVnwo.png',
@@ -793,56 +779,40 @@ function renderDiplomaList(){
   }
   var container = document.getElementById('diplomaList');
   var editor = document.getElementById('diplomaEditor');
+  container.style.display = 'block';
   editor.style.display = 'none';
-
-  // Показываем загрузку
-  container.innerHTML = `
-    <div class="loading-container">
-      <div class="loading-spinner"></div>
-      <div class="loading-text">ЗАГРУЗКА...</div>
-    </div>`;
-
-  setTimeout(function(){
-    if (!diplomasLoaded) return;
-    var search = (document.getElementById('diplomaSearch').value || '').toLowerCase();
-    var typeFilter = document.getElementById('typeFilter').value;
-    var filtered = diplomas.filter(function(d){
-      return (d.title||'').toLowerCase().indexOf(search) !== -1 && (!typeFilter || d.type === typeFilter);
-    });
-    if(filtered.length === 0){
-      var createBtn = hasPerm('diplomas','create') ? '<button class="btn-create" onclick="createDiploma()">+ Создать первый диплом</button>' : '';
-      container.innerHTML = '<div class="diploma-empty"><span style="font-size:48px;">🎓</span><p>Дипломы не найдены</p>'+createBtn+'</div>';
-      return;
-    }
-    var grouped = {};
-    filtered.forEach(function(d){
-      if(!grouped[d.type]) grouped[d.type] = [];
-      grouped[d.type].push(d);
-    });
-    var html = '';
-    Object.keys(grouped).sort().forEach(function(type){
-      var cardsHtml = grouped[type].map(function(d){
-        var editBtn = hasPerm('diplomas','edit') ? '<button class="btn btn-edit" onclick="editDiploma(\''+d.id+'\')">✏️</button>' : '';
-        var printBtn = hasPerm('diplomas','edit') ? '<button class="btn btn-print" onclick="printDiploma(\''+d.id+'\')">🖨</button>' : '';
-        var delBtn = hasPerm('diplomas','delete') ? '<button class="btn btn-del" onclick="deleteDiploma(\''+d.id+'\')">🗑</button>' : '';
-        return '<div class="diploma-card"><h4>🎓 '+(d.title || 'Без названия')+'</h4>'+
-          '<p><b>Дата:</b> '+(d.date || '—')+'</p>'+
-          '<div class="card-actions"><button class="btn btn-view" onclick="viewDiploma(\''+d.id+'\')">👁</button>'+
-          editBtn+printBtn+delBtn+'</div></div>';
-      }).join('');
-      html += '<div class="diploma-type-section"><h3>'+type+'</h3><div class="diploma-grid">'+cardsHtml+'</div></div>';
-    });
-    container.innerHTML = html;
-  }, 600);
+  var search = (document.getElementById('diplomaSearch').value || '').toLowerCase();
+  var typeFilter = document.getElementById('typeFilter').value;
+  var filtered = diplomas.filter(function(d){
+    return (d.title||'').toLowerCase().indexOf(search) !== -1 && (!typeFilter || d.type === typeFilter);
+  });
+  if(filtered.length === 0){
+    var createBtn = hasPerm('diplomas','create') ? '<button class="btn-create" onclick="createDiploma()">+ Создать первый диплом</button>' : '';
+    container.innerHTML = '<div class="diploma-empty"><span style="font-size:48px;">🎓</span><p>Дипломы не найдены</p>'+createBtn+'</div>';
+    return;
+  }
+  var grouped = {};
+  filtered.forEach(function(d){
+    if(!grouped[d.type]) grouped[d.type] = [];
+    grouped[d.type].push(d);
+  });
+  var html = '';
+  Object.keys(grouped).sort().forEach(function(type){
+    var cardsHtml = grouped[type].map(function(d){
+      var editBtn = hasPerm('diplomas','edit') ? '<button class="btn btn-edit" onclick="editDiploma(\''+d.id+'\')">✏️</button>' : '';
+      var printBtn = hasPerm('diplomas','edit') ? '<button class="btn btn-print" onclick="printDiploma(\''+d.id+'\')">🖨</button>' : '';
+      var delBtn = hasPerm('diplomas','delete') ? '<button class="btn btn-del" onclick="deleteDiploma(\''+d.id+'\')">🗑</button>' : '';
+      return '<div class="diploma-card"><h4>🎓 '+escapeHtml(d.title || 'Без названия')+'</h4><p><b>Дата:</b> '+escapeHtml(d.date || '—')+'</p><div class="card-actions"><button class="btn btn-view" onclick="viewDiploma(\''+d.id+'\')">👁</button>'+editBtn+printBtn+delBtn+'</div></div>';
+    }).join('');
+    html += '<div class="diploma-type-section"><h3>'+escapeHtml(type)+'</h3><div class="diploma-grid">'+cardsHtml+'</div></div>';
+  });
+  container.innerHTML = html;
 }
 
 async function createDiploma(){
   if(!hasPerm('diplomas', 'create') || !supabaseClient) return;
   var id = 'dip_' + Date.now();
-  var newDip = { 
-    id: id, title: 'Новый диплом', date: new Date().toLocaleDateString('ru-RU'), 
-    type: 'Диплом о высшем образовании магистратура', fields: {} 
-  };
+  var newDip = { id: id, title: 'Новый диплом', date: new Date().toLocaleDateString('ru-RU'), type: 'Диплом о высшем образовании магистратура', fields: {} };
   var res = await supabaseClient.from('diplomas').insert([newDip]);
   if(!res.error){
     diplomas.push(newDip);
@@ -862,12 +832,7 @@ function viewDiploma(id){
   editor.style.display = 'block';
   currentDiplomaIdx = id;
   var bgUrl = DIPLOMA_TEMPLATES[d.type] || DIPLOMA_TEMPLATES['Диплом о высшем образовании магистратура'];
-  editor.innerHTML = '<div class="ld-toolbar">'+
-    '<button class="btn-back" onclick="backToDiplomaList()">← К списку</button>'+
-    '<span style="color:#d4af37;font-weight:600;">👁 '+d.type+': '+d.title+'</span>'+
-    '<button class="btn btn-print" onclick="window.print()">🖨</button></div>'+
-    '<div class="page-wrapper"><div class="diploma-container">'+
-    '<img src="'+bgUrl+'" alt="Бланк" class="diploma-bg">'+generateDiplomaInputs(d.fields, true)+'</div></div>';
+  editor.innerHTML = '<div class="ld-toolbar"><button class="btn-back" onclick="backToDiplomaList()">← К списку</button><span style="color:#d4af37;font-weight:600;">👁 '+escapeHtml(d.type)+': '+escapeHtml(d.title)+'</span><button class="btn btn-print" onclick="window.print()">🖨</button></div><div class="page-wrapper"><div class="diploma-container"><img src="'+bgUrl+'" alt="Бланк" class="diploma-bg">'+generateDiplomaInputs(d.fields, true)+'</div></div>';
 }
 
 function editDiploma(id){
@@ -881,15 +846,13 @@ function editDiploma(id){
   var bgUrl = DIPLOMA_TEMPLATES[d.type] || DIPLOMA_TEMPLATES['Диплом о высшем образовании магистратура'];
   editor.innerHTML = '<div class="ld-toolbar">'+
     '<button class="btn-back" onclick="backToDiplomaList()">← К списку</button>'+
-    '<input type="text" id="diplomaTitleInput" value="'+(d.title||'')+'" placeholder="Название">'+
+    '<input type="text" id="diplomaTitleInput" value="'+escapeHtml(d.title||'')+'" placeholder="Название">'+
     '<select id="diplomaTypeInput" onchange="updateDiplomaBackground()">'+
     '<option '+(d.type==='Диплом о высшем образовании магистратура'?'selected':'')+'>Диплом о высшем образовании магистратура</option>'+
     '<option '+(d.type==='Диплом о высшем образовании Бакалавриат'?'selected':'')+'>Диплом о высшем образовании Бакалавриат</option>'+
     '<option '+(d.type==='Диплом о среднем профессиональном образовании'?'selected':'')+'>Диплом о среднем профессиональном образовании</option></select>'+
-    '<button class="btn-save" onclick="saveDiploma()">💾</button>'+
-    '<button class="btn btn-print" onclick="window.print()">🖨</button></div>'+
-    '<div class="page-wrapper"><div class="diploma-container">'+
-    '<img src="'+bgUrl+'" alt="Бланк" class="diploma-bg" id="diplomaBg">'+generateDiplomaInputs(d.fields, false)+'</div></div>';
+    '<button class="btn-save" onclick="saveDiploma()">💾</button><button class="btn btn-print" onclick="window.print()">🖨</button></div>'+
+    '<div class="page-wrapper"><div class="diploma-container"><img src="'+bgUrl+'" alt="Бланк" class="diploma-bg" id="diplomaBg">'+generateDiplomaInputs(d.fields, false)+'</div></div>';
 }
 
 function updateDiplomaBackground(){
@@ -924,8 +887,7 @@ function generateDiplomaInputs(fields, readonly){
   positions.forEach(function(p){
     var val = (fields && fields[p.key]) ? fields[p.key] : '';
     var fontSizeStyle = smallFontKeys.indexOf(p.key) !== -1 ? 'font-size:16px;' : '';
-    html += '<input type="text" class="diploma-input" style="top:'+p.top+';left:'+p.left+';width:'+p.width+';height:3.5%;'+fontSizeStyle+'" '+
-      'data-key="'+p.key+'" value="'+val+'" '+(readonly ? 'readonly' : '')+'>';
+    html += '<input type="text" class="diploma-input" style="top:'+p.top+';left:'+p.left+';width:'+p.width+';height:3.5%;'+fontSizeStyle+'" data-key="'+p.key+'" value="'+escapeHtml(val)+'" '+(readonly ? 'readonly' : '')+'>';
   });
   return html;
 }
@@ -939,16 +901,14 @@ async function saveDiploma(){
   updateData.type = document.getElementById('diplomaTypeInput').value;
   updateData.date = d.date || new Date().toLocaleDateString('ru-RU');
   var fieldsData = {};
-  document.querySelectorAll('.diploma-input[data-key]').forEach(function(inp){
-    fieldsData[inp.dataset.key] = inp.value;
-  });
+  document.querySelectorAll('.diploma-input[data-key]').forEach(function(inp){ fieldsData[inp.dataset.key] = inp.value; });
   updateData.fields = fieldsData;
   var res = await supabaseClient.from('diplomas').update(updateData).eq('id', currentDiplomaIdx);
   if(!res.error){
     d.title = updateData.title;
     d.type = updateData.type;
     d.fields = fieldsData;
-    alert("✅ Сохранено");
+    alert('✅ Сохранено');
   } else {
     alert('Ошибка сохранения');
   }
@@ -956,7 +916,7 @@ async function saveDiploma(){
 
 async function deleteDiploma(id){
   if(!hasPerm('diplomas', 'delete') || !supabaseClient) return;
-  if(confirm("Удалить диплом?")){
+  if(confirm('Удалить диплом?')){
     var res = await supabaseClient.from('diplomas').delete().eq('id', id);
     if(!res.error){
       diplomas = diplomas.filter(function(d){ return d.id !== id; });
@@ -984,14 +944,9 @@ async function loadAdminUsers(){
   var adminUsersList = document.getElementById('adminUsersList');
   if(!adminUsersList) return;
   var html = (resp.data || []).map(function(u){
-    var options = Object.keys(ROLES).map(function(r){
-      return '<option value="'+r+'" '+(u.role===r?'selected':'')+'>'+r+'</option>';
-    }).join('');
+    var options = Object.keys(ROLES).map(function(r){ return '<option value="'+r+'" '+(u.role===r?'selected':'')+'>'+r+'</option>'; }).join('');
     var delBtn = u.username !== ADMIN_CREDS.username ? '<button class="btn btn-del" onclick="deleteUser(\''+u.id+'\')">🗑</button>' : '';
-    return '<div class="admin-user-item"><b>'+u.username+'</b>'+
-      '<span class="role-badge">'+u.role+'</span>'+
-      '<select onchange="updateUserRole(\''+u.id+'\', this.value)" '+(u.username === ADMIN_CREDS.username ? 'disabled' : '')+'>'+
-      options+'</select>'+delBtn+'</div>';
+    return '<div class="admin-user-item"><b>'+escapeHtml(u.username)+'</b><span class="role-badge">'+escapeHtml(u.role)+'</span><select onchange="updateUserRole(\''+u.id+'\', this.value)" '+(u.username === ADMIN_CREDS.username ? 'disabled' : '')+'>'+options+'</select>'+delBtn+'</div>';
   }).join('');
   adminUsersList.innerHTML = html;
 }
@@ -1002,15 +957,10 @@ async function createUser(e){
   var username = document.getElementById('newUsername').value.trim();
   var password = document.getElementById('newPassword').value;
   var role = document.getElementById('newRole').value;
-  if(username.length < 3 || password.length < 6){
-    alert('Имя пользователя (мин. 3) и пароль (мин. 6) должны быть длиннее');
-    return;
-  }
+  if(username.length < 3 || password.length < 6){ alert('Имя пользователя (мин. 3) и пароль (мин. 6) должны быть длиннее'); return; }
   var checkResp = await supabaseClient.from('users').select('id').eq('username', username).single();
   if(checkResp.data){ alert('Пользователь уже существует'); return; }
-  var res = await supabaseClient.from('users').insert([{ 
-    id: 'user_'+Date.now(), username: username, password: password, role: role 
-  }]);
+  var res = await supabaseClient.from('users').insert([{ id: 'user_'+Date.now(), username: username, password: password, role: role }]);
   if(!res.error){
     document.getElementById('newUsername').value = '';
     document.getElementById('newPassword').value = '';
