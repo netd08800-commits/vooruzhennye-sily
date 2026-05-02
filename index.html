@@ -202,6 +202,8 @@
         .diploma-input{position:absolute;box-sizing:border-box;background:transparent;border:none;border-bottom:1px solid transparent;font-family:'Times New Roman',serif;font-size:24px;color:#1a1a1a;padding:0 4px;text-align:left}
         .diploma-input:focus{outline:none;background:transparent;border-bottom:1px solid rgba(0,0,0,0.2);box-shadow:none}
         .diploma-input[readonly]{background:transparent;border-bottom:1px solid transparent;cursor:default}
+        .readonly-field{cursor:default!important;user-select:text!important}
+        .readonly-field:focus{outline:none!important;box-shadow:none!important;background:transparent!important}
 
         .admin-panel{background:linear-gradient(145deg,#2a1a2a,#3a2a3a);border:1px solid #5a3a5a;border-radius:8px;padding:20px;margin-bottom:20px}
         .admin-panel h3{color:#d4af37;margin-bottom:15px;font-size:16px}
@@ -415,7 +417,7 @@ function insertLineBreakAtCursor(){
   var br = document.createElement('br');
   range.insertNode(br);
 
-  var zero = document.createTextNode('\u200B');
+  var zero = document.createTextNode('​');
   br.parentNode.insertBefore(zero, br.nextSibling);
 
   range.setStart(zero, 1);
@@ -716,12 +718,24 @@ function openCase(id){
   var c = cases.find(function(x){ return x.id === id; });
   if(!c) return;
   var d = c.data || {};
+  var canEdit = hasPerm('cases','edit');
   ldApp.innerHTML = '<div class="ld-toolbar">'+
     '<button class="btn-back" onclick="homeLD()">← Назад к списку</button>'+
     '<b style="color:#d4af37;">'+escapeHtml(c.title)+'</b>'+
-    (hasPerm('cases','edit') ? '<button class="btn-save" onclick="saveCase(\''+id+'\')">💾 Сохранить</button>' : '') +
+    (canEdit ? '<button class="btn-save" onclick="saveCase(\''+id+'\')">💾 Сохранить</button>' : '') +
     '</div>'+
     cover(d)+disc(d)+reward(d);
+
+  // Настоящий режим только просмотра: нельзя вводить текст и менять галочки.
+  if(!canEdit){
+    ldApp.querySelectorAll('[contenteditable]').forEach(function(el){
+      el.setAttribute('contenteditable','false');
+      el.classList.add('readonly-field');
+    });
+    ldApp.querySelectorAll('input[type="checkbox"]').forEach(function(el){
+      el.disabled = true;
+    });
+  }
 }
 
 async function saveCase(id){
