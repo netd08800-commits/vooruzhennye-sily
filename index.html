@@ -7,7 +7,7 @@
     <meta http-equiv="Expires" content="0">
     <title>Министерство обороны — Региональная Федерация</title>
 
-    <!-- БИБЛИОТЕКА SUPABASE (ОБЯЗАТЕЛЬНО) -->
+    <!-- БИБЛИОТЕКА SUPABASE -->
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
     <style>
@@ -103,7 +103,7 @@
         .ld-toolbar input,.ld-toolbar select{padding:10px 14px;background:#1e2b1c;border:1px solid #2a3a28;border-radius:4px;color:#c8d4b8;font-size:14px;font-family:inherit}
         .ld-toolbar input:focus,.ld-toolbar select:focus{outline:none;border-color:#4a6a3a}
 
-        /* ====== ФИКСАЦИЯ ВСЕХ ПОЛЕЙ НАМЕРТВО ====== */
+        /* ====== ФИКСАЦИЯ ПОЛЕЙ ====== */
         .page{width:210mm;height:297mm;background:white;margin:20px auto;padding:20mm;box-sizing:border-box;position:relative;font-family:"Times New Roman",serif;color:#000}
         .page-flex{width:210mm;height:297mm;background:white;margin:20px auto;padding:15mm;box-sizing:border-box;position:relative;font-family:"Times New Roman",serif;color:#000;display:flex;flex-direction:column}
         .page-flex h3{margin:0 0 4mm 0;text-align:center;font-size:15pt;flex-shrink:0;color:#000}
@@ -119,14 +119,19 @@
         table.full th,table.full td{border:1px solid #000;padding:1.5mm 2mm;vertical-align:top;overflow:hidden;word-break:break-word}
         table.full thead th{text-align:center;font-size:9pt;font-weight:700;background:#f8f8f8;vertical-align:middle;line-height:1.3;padding:2mm 1.5mm;color:#000}
         table.full .num{width:9mm;font-weight:bold;text-align:center;vertical-align:middle}
-        /* Разрешаем перенос строк в ячейках, но фиксируем высоту */
-        table.full td[contenteditable]{
-            overflow:hidden;
-            white-space: normal !important;   /* ← ТЕПЕРЬ МОЖНО ENTER/SHIFT+ENTER */
-            height: 9.5mm !important;
+        /* Контейнер внутри ячейки для фиксации высоты */
+        .cell-content {
+            height: 9.5mm;
+            overflow: hidden;
+            white-space: normal;   /* перенос строки работает */
             line-height: 1.2;
+            outline: none;
         }
-        table.full td[contenteditable]:focus{outline:2px solid #2d6cdf;outline-offset:-2px;background:#f0f5ff}
+        .cell-content:focus {
+            outline: 2px solid #2d6cdf;
+            outline-offset: -2px;
+            background: #f0f5ff;
+        }
         table.full .chk-col{text-align:center;vertical-align:middle}
 
         .cover{font-family:"Trebuchet MS",Arial,sans-serif}
@@ -154,12 +159,9 @@
             display:inline-block; border-bottom:1px solid #000;
             width:78%; overflow:hidden; white-space:nowrap; height:1.5em;
         }
-        /* Поля обложки остаются однострочными */
-        .cover [contenteditable] {
-            white-space: nowrap;
-        }
+        .cover [contenteditable] { white-space: nowrap; }
 
-        /* ====== СТИЛИ ЗАГРУЗКИ ====== */
+        /* ====== ЗАГРУЗКА ====== */
         .loading-spinner {
             width: 60px;
             height: 60px;
@@ -236,7 +238,6 @@
         .admin-panel h3{color:#d4af37;margin-bottom:15px;font-size:16px}
         .admin-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
         .admin-form input,.admin-form select{padding:10px;background:#1a2818;border:1px solid #2a3a28;border-radius:4px;color:#e0e0e0;font-size:14px;font-family:inherit}
-        .admin-form input:focus,.admin-form select:focus{outline:none;border-color:#8b7d3c}
         .admin-users-list{margin-top:15px}
         .admin-user-item{display:flex;align-items:center;gap:10px;padding:10px;background:#1e2b1c;border-radius:4px;margin-bottom:8px;flex-wrap:wrap}
         .admin-user-item b{flex:1;min-width:150px;color:#c8d4b8}
@@ -585,10 +586,8 @@ async function loadData(){
   try {
     var c = await supabaseClient.from('cases').select('*');
     var d = await supabaseClient.from('diplomas').select('*');
-    if(c.data) cases = c.data;
-    if(d.data) diplomas = d.data;
-    casesLoaded = true;
-    diplomasLoaded = true;
+    if(c.data) { cases = c.data; casesLoaded = true; }
+    if(d.data) { diplomas = d.data; diplomasLoaded = true; }
     updateCounters();
     if(document.getElementById('sec-ld').classList.contains('active')) homeLD();
     if(document.getElementById('sec-diplomas').classList.contains('active')) renderDiplomaList();
@@ -597,7 +596,7 @@ async function loadData(){
   }
 }
 
-// ========== ЛИЧНЫЕ ДЕЛА (С ЗАГРУЗКОЙ) ==========
+// ========== ЛИЧНЫЕ ДЕЛА ==========
 var ldApp = document.getElementById('ldApp');
 
 function homeLD(){
@@ -746,11 +745,11 @@ function disc(d){
   var rows = '';
   for(var i=1;i<=14;i++){
     rows += '<tr><td class="num">'+i+'</td>'+
-      '<td contenteditable data-key="d1_'+i+'">'+(d['d1_'+i]||'')+'</td>'+
-      '<td contenteditable data-key="d2_'+i+'">'+(d['d2_'+i]||'')+'</td>'+
-      '<td contenteditable data-key="d3_'+i+'">'+(d['d3_'+i]||'')+'</td>'+
-      '<td contenteditable data-key="d4_'+i+'">'+(d['d4_'+i]||'')+'</td>'+
-      '<td contenteditable data-key="d5_'+i+'">'+(d['d5_'+i]||'')+'</td>'+
+      '<td><div contenteditable class="cell-content" data-key="d1_'+i+'">'+(d['d1_'+i]||'')+'</div></td>'+
+      '<td><div contenteditable class="cell-content" data-key="d2_'+i+'">'+(d['d2_'+i]||'')+'</div></td>'+
+      '<td><div contenteditable class="cell-content" data-key="d3_'+i+'">'+(d['d3_'+i]||'')+'</div></td>'+
+      '<td><div contenteditable class="cell-content" data-key="d4_'+i+'">'+(d['d4_'+i]||'')+'</div></td>'+
+      '<td><div contenteditable class="cell-content" data-key="d5_'+i+'">'+(d['d5_'+i]||'')+'</div></td>'+
       '<td class="chk-col"><input type="checkbox" data-key="d6_'+i+'" '+(d['d6_'+i]?'checked':'')+'></td></tr>';
   }
   return '<div class="page-flex"><h3>ЛИСТ ДИСЦИПЛИНАРНЫХ ВЗЫСКАНИЙ</h3>'+
@@ -767,10 +766,10 @@ function reward(d){
   var rows = '';
   for(var i=1;i<=14;i++){
     rows += '<tr><td class="num">'+i+'</td>'+
-      '<td contenteditable data-key="r1_'+i+'">'+(d['r1_'+i]||'')+'</td>'+
-      '<td contenteditable data-key="r2_'+i+'">'+(d['r2_'+i]||'')+'</td>'+
-      '<td contenteditable data-key="r3_'+i+'">'+(d['r3_'+i]||'')+'</td>'+
-      '<td contenteditable data-key="r4_'+i+'">'+(d['r4_'+i]||'')+'</td></tr>';
+      '<td><div contenteditable class="cell-content" data-key="r1_'+i+'">'+(d['r1_'+i]||'')+'</div></td>'+
+      '<td><div contenteditable class="cell-content" data-key="r2_'+i+'">'+(d['r2_'+i]||'')+'</div></td>'+
+      '<td><div contenteditable class="cell-content" data-key="r3_'+i+'">'+(d['r3_'+i]||'')+'</div></td>'+
+      '<td><div contenteditable class="cell-content" data-key="r4_'+i+'">'+(d['r4_'+i]||'')+'</div></td></tr>';
   }
   return '<div class="page-flex"><h3>ЛИСТ ПООЩРЕНИЙ</h3>'+
     '<div class="table-wrap"><table class="full">'+
@@ -781,7 +780,7 @@ function reward(d){
     '<tbody>'+rows+'</tbody></table></div></div>';
 }
 
-// ========== ДИПЛОМЫ (С ЗАГРУЗКОЙ) ==========
+// ========== ДИПЛОМЫ ==========
 var DIPLOMA_TEMPLATES = {
   'Диплом о высшем образовании магистратура': 'https://s10.iimage.su/s/30/gd7bC5txU1ZZarspdrYQZZqzA7cZMglzwtKCArAR6.png',
   'Диплом о высшем образовании Бакалавриат': 'https://s10.iimage.su/s/01/gAXX41KxVCFMrw3P4QvOom30R4QK2LvitAH2zVnwo.png',
