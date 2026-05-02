@@ -13,14 +13,11 @@ body{background:#1a1f2b;font-family:'Segoe UI',Arial,sans-serif;color:#e0e0e0;mi
 .auth-form input{width:100%;padding:12px;margin:8px 0;background:#1a2818;border:1px solid #2a3a28;color:#fff;border-radius:4px;}
 .auth-form .btn{width:100%;padding:12px;margin-top:10px;background:#2a5a28;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:14px;font-weight:600;}
 .auth-error{background:#3a1a1a;color:#d88a8a;padding:10px;margin:10px 0;border-radius:4px;display:none;text-align:center;}
-
-/* Спиннер загрузки */
 .loading-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(26,31,43,0.92);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:10000;}
 .loading-overlay.hidden{display:none!important;}
 .loading-spinner{width:48px;height:48px;border:4px solid rgba(139,125,60,0.3);border-top:4px solid #d4af37;border-radius:50%;animation:spin 1s linear infinite;}
 @keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
 .loading-text{color:#d4af37;margin-top:20px;font-size:16px;}
-
 .mil-header{background:linear-gradient(180deg,#2c3e2a,#1e2e1c);border-bottom:3px solid #8b7d3c;padding:0;}
 .mil-header-inner{max-width:1300px;margin:auto;display:flex;align-items:center;padding:12px 30px;gap:20px;}
 .mil-emblem{width:70px;height:70px;}
@@ -71,9 +68,9 @@ body{background:#1a1f2b;font-family:'Segoe UI',Arial,sans-serif;color:#e0e0e0;mi
 .btn-view{background:#3a2a1a;color:#d4af37;}
 .ld-toolbar{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;}
 .ld-toolbar input{padding:10px;background:#1e2b1c;border:1px solid #2a3a28;border-radius:4px;color:#c8d4b8;}
-.page{width:210mm;min-height:297mm;background:white;margin:20px auto;padding:20mm;font-family:"Times New Roman",serif;color:#000;position:relative;}
+.page{width:210mm;min-height:297mm;background:white;margin:20px auto;padding:20mm;font-family:"Times New Roman",serif;color:#000;position:relative;box-shadow:0 4px 20px rgba(0,0,0,0.5);}
+.page-break{page-break-after:always;}
 .pg-center{text-align:center;}
-.uline{display:inline-block;border-bottom:1px solid #000;min-width:30mm;}
 table.full{width:100%;border-collapse:collapse;}
 table.full th,table.full td{border:1px solid #000;padding:2mm;vertical-align:top;}
 table.full thead th{background:#f0f0f0;text-align:center;}
@@ -81,6 +78,10 @@ table.full thead th{background:#f0f0f0;text-align:center;}
 .cover .ftbl{width:100%;border-collapse:collapse;margin-top:6mm;}
 .cover .ftbl td{border:none;padding:2mm;}
 .cover .ftbl .val{border-bottom:1px solid #000;}
+.editable{border:1px dashed #999;padding:2px;min-height:1.2em;}
+.editable:focus{outline:none;border:1px solid #000;background:#f0f8ff;}
+.chk-col{text-align:center;vertical-align:middle;}
+.chk-col input[type="checkbox"]{width:16px;height:16px;cursor:pointer;}
 .diplomas-header{display:flex;justify-content:space-between;margin-bottom:20px;}
 .diploma-filters{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;}
 .diploma-filters input,.diploma-filters select{padding:8px;background:#1e2b1c;border:1px solid #2a3a28;border-radius:4px;color:#c8d4b8;}
@@ -105,7 +106,7 @@ table.full thead th{background:#f0f0f0;text-align:center;}
 .role-badge{padding:3px 10px;background:#2a3a28;border-radius:3px;font-size:11px;color:#8b7d3c;}
 .mil-footer{background:#0a0f08;border-top:1px solid #1a2a18;padding:20px;text-align:center;margin-top:40px;}
 .mil-footer p{color:#3a4a38;font-size:11px;}
-@media print{.auth-overlay,.loading-overlay,.mil-header,.mil-nav,.mil-footer,.ld-toolbar,.btn{display:none!important;}.page{margin:0;box-shadow:none;}}
+@media print{.auth-overlay,.loading-overlay,.mil-header,.mil-nav,.mil-footer,.ld-toolbar,.btn{display:none!important;}.page{margin:0;box-shadow:none;page-break-after:always;}}
 </style>
 </head>
 <body>
@@ -446,25 +447,21 @@ function hasPerm(type, action) {
   return p[type] && p[type][action];
 }
 
-/* ---------- ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК (МГНОВЕННЫЙ ПОКАЗ + ФОНОВАЯ ЗАГРУЗКА) ---------- */
+/* ---------- ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК ---------- */
 function switchTab(tab) {
-  // Мгновенно показываем вкладку из кеша
   document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
   document.querySelectorAll('.mil-nav-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('sec-' + tab).classList.add('active');
   if (event && event.target) event.target.classList.add('active');
 
-  // Сразу рендерим из кеша
   if (tab === 'ld') homeLD();
   else if (tab === 'diplomas') renderDiplomaList();
   else if (tab === 'admin') renderAdminUsersDirect();
   else if (tab === 'main') updateCounters();
 
-  // Фоновая загрузка со спиннером
   showLoading('Загрузка Личных дел, ожидайте...');
   loadData().then(() => {
     hideLoading();
-    // Перерисовываем актуальный раздел свежими данными
     if (tab === 'ld') homeLD();
     else if (tab === 'diplomas') renderDiplomaList();
     else if (tab === 'admin') renderAdminUsersDirect();
@@ -472,7 +469,7 @@ function switchTab(tab) {
   });
 }
 
-/* ---------- ЛИЧНЫЕ ДЕЛА (остальные функции без изменений) ---------- */
+/* ========== ЛИЧНЫЕ ДЕЛА ========== */
 function homeLD() {
   if (!hasPerm('cases', 'view')) {
     document.getElementById('ldApp').innerHTML = '<p style="color:#6a7a5e;padding:20px;">Нет доступа</p>';
@@ -527,21 +524,53 @@ async function saveCase(id) {
   alert('✅ Сохранено');
 }
 
-function cover(d) {
-  return '<div class="page cover"><div class="photo-box">МЕСТО ДЛЯ<br>ФОТО</div><div class="pg-center" style="font-size:14pt;font-weight:700;">Региональная Федерация<br>Вооруженные силы</div><div class="pg-center" style="margin:5mm 0;"><img src="https://s2.radikal.cloud/2026/04/29/dfdf_JGfgeca8786ddfc9c6341.webp" style="height:42mm;"></div><div class="pg-center" style="font-size:28pt;font-weight:700;margin:10mm 0;">ЛИЧНОЕ ДЕЛО</div><div style="margin:10mm 0;"><div style="border-bottom:1px solid #000;min-height:8mm;font-size:14pt;">' + (d.fio || '') + '</div><div class="pg-center" style="font-size:10pt;">( ФИО )</div></div><table class="ftbl"><tr><td>дата рождения</td><td class="val">' + (d.birth || '') + '</td><td>пол</td><td class="val">' + (d.gender || '') + '</td></tr><tr><td>место рождения</td><td class="val">' + (d.place || '') + '</td><td>гражданство</td><td class="val">' + (d.cit || '') + '</td></tr><tr><td>образование</td><td class="val">' + (d.edu || '') + '</td><td>№ паспорта</td><td class="val">' + (d.pass || '') + '</td></tr></table></div>';
+function cover(d){
+  return '<div class="page cover"><div class="photo-box">МЕСТО ДЛЯ<br>ФОТО</div><div class="pg-center" style="font-size:14pt;font-weight:700;">Региональная Федерация<br>Вооруженные силы</div><div class="pg-center" style="margin:5mm 0;"><img src="https://s2.radikal.cloud/2026/04/29/dfdf_JGfgeca8786ddfc9c6341.webp" style="height:42mm;"></div><div class="pg-center" style="font-size:28pt;font-weight:700;margin:10mm 0;">ЛИЧНОЕ ДЕЛО</div><div style="margin:10mm 0;"><div style="border-bottom:1px solid #000;min-height:8mm;font-size:14pt;">'+(d.fio||'')+'</div><div class="pg-center" style="font-size:10pt;">( ФИО )</div></div><table class="ftbl"><tr><td>дата рождения</td><td class="val">'+(d.birth||'')+'</td><td>пол</td><td class="val">'+(d.gender||'')+'</td></tr><tr><td>место рождения</td><td class="val">'+(d.place||'')+'</td><td>гражданство</td><td class="val">'+(d.cit||'')+'</td></tr><tr><td>образование</td><td class="val">'+(d.edu||'')+'</td><td>№ паспорта</td><td class="val">'+(d.pass||'')+'</td></tr></table></div>';
 }
 
-function disc(d) {
-  let r = ''; for (let i = 1; i <= 14; i++) r += '<tr><td>' + i + '</td><td></td><td></td><td></td><td></td><td></td><td></td></tr>';
-  return '<div class="page"><h3 class="pg-center">ЛИСТ ВЗЫСКАНИЙ</h3><table class="full"><thead><tr><th>№</th><th>Ответственный</th><th>Дата</th><th>Проступок</th><th>Вид</th><th>Основание</th><th>Снятие</th></tr></thead><tbody>' + r + '</tbody></table></div>';
+// ========== ЛИСТ ДИСЦИПЛИНАРНЫХ ВЗЫСКАНИЙ (14 строк + галочки) ==========
+function disc(d){
+  let r = '';
+  for(let i=1; i<=14; i++){
+    const key = 'punish_' + i;
+    r += '<tr>'+
+      '<td>'+i+'</td>'+
+      '<td class="editable" contenteditable="true" data-key="'+key+'_resp"></td>'+
+      '<td class="editable" contenteditable="true" data-key="'+key+'_date"></td>'+
+      '<td class="editable" contenteditable="true" data-key="'+key+'_offense"></td>'+
+      '<td class="editable" contenteditable="true" data-key="'+key+'_type"></td>'+
+      '<td class="editable" contenteditable="true" data-key="'+key+'_basis"></td>'+
+      '<td class="chk-col"><input type="checkbox" data-key="'+key+'_removed" '+(d[key+'_removed']?'checked':'')+'></td>'+
+      '</tr>';
+  }
+  return '<div class="page"><h3 class="pg-center" style="font-size:16pt;margin-bottom:5mm;">ЛИСТ ДИСЦИПЛИНАРНЫХ ВЗЫСКАНИЙ</h3>'+
+    '<table class="full">'+
+    '<colgroup><col style="width:5%;"><col style="width:22%;"><col style="width:14%;"><col style="width:22%;"><col style="width:13%;"><col style="width:13%;"><col style="width:11%;"></colgroup>'+
+    '<thead><tr><th>№</th><th>Ответственный</th><th>Дата приказа</th><th>Проступок</th><th>Вид взыскания</th><th>Основание</th><th>Отметка о снятии</th></tr></thead>'+
+    '<tbody>'+r+'</tbody></table></div>';
 }
 
-function reward(d) {
-  let r = ''; for (let i = 1; i <= 14; i++) r += '<tr><td>' + i + '</td><td></td><td></td><td></td><td></td></tr>';
-  return '<div class="page"><h3 class="pg-center">ЛИСТ ПООЩРЕНИЙ</h3><table class="full"><thead><tr><th>№</th><th>Ответственный</th><th>Дата</th><th>Вид</th><th>За что</th></tr></thead><tbody>' + r + '</tbody></table></div>';
+// ========== ЛИСТ ПООЩРЕНИЙ (14 строк) ==========
+function reward(d){
+  let r = '';
+  for(let i=1; i<=14; i++){
+    const key = 'reward_' + i;
+    r += '<tr>'+
+      '<td>'+i+'</td>'+
+      '<td class="editable" contenteditable="true" data-key="'+key+'_resp"></td>'+
+      '<td class="editable" contenteditable="true" data-key="'+key+'_date"></td>'+
+      '<td class="editable" contenteditable="true" data-key="'+key+'_type"></td>'+
+      '<td class="editable" contenteditable="true" data-key="'+key+'_reason"></td>'+
+      '</tr>';
+  }
+  return '<div class="page"><h3 class="pg-center" style="font-size:16pt;margin-bottom:5mm;">ЛИСТ ПООЩРЕНИЙ</h3>'+
+    '<table class="full">'+
+    '<colgroup><col style="width:5%;"><col style="width:28%;"><col style="width:17%;"><col style="width:22%;"><col style="width:28%;"></colgroup>'+
+    '<thead><tr><th>№</th><th>Ответственный</th><th>Дата</th><th>Вид поощрения</th><th>За что</th></tr></thead>'+
+    '<tbody>'+r+'</tbody></table></div>';
 }
 
-/* ---------- ДИПЛОМЫ ---------- */
+/* ========== ДИПЛОМЫ ========== */
 function renderDiplomaList() {
   if (!hasPerm('diplomas', 'view')) { document.getElementById('diplomaList').innerHTML = '<p>Нет доступа</p>'; return; }
   const s = document.getElementById('diplomaSearch').value.toLowerCase();
@@ -654,5 +683,6 @@ async function deleteUser(id) {
   renderAdminUsersDirect();
 }
 </script>
+
 </body>
 </html>
