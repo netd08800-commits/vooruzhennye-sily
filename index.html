@@ -119,8 +119,10 @@
         table.full th,table.full td{border:1px solid #000;padding:1.5mm 2mm;vertical-align:top;overflow:hidden;word-break:break-word}
         table.full thead th{text-align:center;font-size:9pt;font-weight:700;background:#f8f8f8;vertical-align:middle;line-height:1.3;padding:2mm 1.5mm;color:#000}
         table.full .num{width:9mm;font-weight:bold;text-align:center;vertical-align:middle}
+        /* Разрешаем перенос строк в ячейках, но фиксируем высоту */
         table.full td[contenteditable]{
-            overflow:hidden; white-space:nowrap;
+            overflow:hidden;
+            white-space: normal !important;   /* ← ТЕПЕРЬ МОЖНО ENTER/SHIFT+ENTER */
             height: 9.5mm !important;
             line-height: 1.2;
         }
@@ -152,7 +154,46 @@
             display:inline-block; border-bottom:1px solid #000;
             width:78%; overflow:hidden; white-space:nowrap; height:1.5em;
         }
-        [contenteditable] { overflow: hidden; white-space: nowrap; }
+        /* Поля обложки остаются однострочными */
+        .cover [contenteditable] {
+            white-space: nowrap;
+        }
+
+        /* ====== СТИЛИ ЗАГРУЗКИ ====== */
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 4px solid rgba(212, 175, 55, 0.2);
+            border-top: 4px solid #d4af37;
+            animation: spin 1s linear infinite;
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .loading-text {
+            color: #d4af37;
+            font-size: 16px;
+            letter-spacing: 2px;
+            margin-top: 20px;
+            text-align: center;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { opacity: 0.5; }
+        }
+        .loading-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 300px;
+        }
 
         .diplomas-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px}
         .diplomas-header h2{color:#c8d4b8;font-size:20px}
@@ -365,6 +406,9 @@ const ROLES = {
   'Модер': { cases: { view: true, create: true, edit: true, delete: true }, diplomas: { view: true, create: true, edit: true, delete: true }, admin: true }
 };
 
+let casesLoaded = false;
+let diplomasLoaded = false;
+
 document.addEventListener('DOMContentLoaded', function() {
   try {
     if(typeof supabase !== 'undefined') {
@@ -464,6 +508,8 @@ function completeLogin(){
 
 function logout(){
   currentUser = null;
+  casesLoaded = false;
+  diplomasLoaded = false;
   localStorage.removeItem('mil_user');
   document.getElementById('authOverlay').style.display = 'flex';
   document.getElementById('loginUsername').value = '';
@@ -541,6 +587,8 @@ async function loadData(){
     var d = await supabaseClient.from('diplomas').select('*');
     if(c.data) cases = c.data;
     if(d.data) diplomas = d.data;
+    casesLoaded = true;
+    diplomasLoaded = true;
     updateCounters();
     if(document.getElementById('sec-ld').classList.contains('active')) homeLD();
     if(document.getElementById('sec-diplomas').classList.contains('active')) renderDiplomaList();
@@ -549,19 +597,20 @@ async function loadData(){
   }
 }
 
-// ========== ЛИЧНЫЕ ДЕЛА (ЗАМОРОЖЕНЫ + ЗАПРЕТ ENTER) ==========
+// ========== ЛИЧНЫЕ ДЕЛА (С ЗАГРУЗКОЙ) ==========
 var ldApp = document.getElementById('ldApp');
-
-// Запрещаем Enter во всех contenteditable внутри личных дел
-ldApp.addEventListener('keydown', function(e) {
-  if (e.target.isContentEditable && e.key === 'Enter') {
-    e.preventDefault();
-  }
-});
 
 function homeLD(){
   if(!hasPerm('cases', 'view')){
     ldApp.innerHTML = '<p style="color:#6a7a5e;padding:20px;">Нет доступа к личным делам</p>';
+    return;
+  }
+  if(!casesLoaded){
+    ldApp.innerHTML = `
+      <div class="loading-container">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">ЗАГРУЗКА...</div>
+      </div>`;
     return;
   }
   var createBtn = hasPerm('cases','create') ? '<button class="btn-create" onclick="createCase()">+ Создать дело</button>' : '';
@@ -732,7 +781,7 @@ function reward(d){
     '<tbody>'+rows+'</tbody></table></div></div>';
 }
 
-// ========== ДИПЛОМЫ ==========
+// ========== ДИПЛОМЫ (С ЗАГРУЗКОЙ) ==========
 var DIPLOMA_TEMPLATES = {
   'Диплом о высшем образовании магистратура': 'https://s10.iimage.su/s/30/gd7bC5txU1ZZarspdrYQZZqzA7cZMglzwtKCArAR6.png',
   'Диплом о высшем образовании Бакалавриат': 'https://s10.iimage.su/s/01/gAXX41KxVCFMrw3P4QvOom30R4QK2LvitAH2zVnwo.png',
@@ -749,6 +798,16 @@ function renderDiplomaList(){
   var container = document.getElementById('diplomaList');
   var editor = document.getElementById('diplomaEditor');
   editor.style.display = 'none';
+  
+  if(!diplomasLoaded){
+    container.innerHTML = `
+      <div class="loading-container">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">ЗАГРУЗКА...</div>
+      </div>`;
+    return;
+  }
+
   var search = (document.getElementById('diplomaSearch').value || '').toLowerCase();
   var typeFilter = document.getElementById('typeFilter').value;
   var filtered = diplomas.filter(function(d){
