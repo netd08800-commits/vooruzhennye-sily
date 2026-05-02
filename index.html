@@ -605,7 +605,7 @@ function switchTab(id, btn){
 async function loadData(){
   if(!currentUser || !supabaseClient) return;
   try {
-    var c = await supabaseClient.from('cases').select('*');
+    var c = await supabaseClient.from('cases').select('*').order('id', { ascending: false });
     var d = await supabaseClient.from('diplomas').select('*');
     if(c.data) cases = c.data;
     if(d.data) diplomas = d.data;
@@ -625,8 +625,6 @@ ldApp.addEventListener('keydown', function(e) {
 
   e.preventDefault();
 
-  // Shift+Enter переносит текст на строку ниже внутри этой же ячейки.
-  // Таблица остаётся растянутой на A4, но ячейка не увеличивает строку.
   if (e.shiftKey && e.target.closest('table.full')) {
     insertLineBreakAtCursor();
     setTimeout(function(){
@@ -680,7 +678,7 @@ async function createCase(){
   var newCase = { id: id, title: 'Новое дело', data: {} };
   var res = await supabaseClient.from('cases').insert([newCase]);
   if(!res.error){
-    cases.push(newCase);
+    cases.unshift(newCase);
     updateCounters();
     homeLD();
   } else {
@@ -726,7 +724,6 @@ function openCase(id){
     '</div>'+
     cover(d)+disc(d)+reward(d);
 
-  // Настоящий режим только просмотра: нельзя вводить текст и менять галочки.
   if(!canEdit){
     ldApp.querySelectorAll('[contenteditable]').forEach(function(el){
       el.setAttribute('contenteditable','false');
