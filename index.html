@@ -130,6 +130,8 @@
         .btn-save:hover{background:linear-gradient(135deg,#d4af37,#e8c84a)}
         .btn-print{background:#1a3a5a;color:#a0c8e8}.btn-print:hover{background:#2a4a6a}
         .btn-view{background:#3a2a1a;color:#d4af37;border:1px solid #5a4a2a}.btn-view:hover{background:#4a3a2a}
+        .btn-pdf{background:#2a4a6a;color:#fff;font-weight:700}
+        .btn-pdf:hover{background:#3a6a8a}
 
         .ld-toolbar{display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap}
         .ld-toolbar input,.ld-toolbar select{padding:10px 14px;background:#1e2b1c;border:1px solid #2a3a28;border-radius:4px;color:#c8d4b8;font-size:14px;font-family:inherit}
@@ -717,10 +719,15 @@ function openCase(id){
   if(!c) return;
   var d = c.data || {};
   var canEdit = hasPerm('cases','edit');
+
+  // Добавлена кнопка «📥 Скачать PDF»
+  var saveBtn = canEdit ? '<button class="btn-save" onclick="saveCase(\''+id+'\')">💾 Сохранить</button>' : '';
+  var pdfBtn = '<button class="btn btn-pdf" onclick="window.print()">📥 Скачать PDF</button>';
+
   ldApp.innerHTML = '<div class="ld-toolbar">'+
     '<button class="btn-back" onclick="homeLD()">← Назад к списку</button>'+
     '<b style="color:#d4af37;">'+escapeHtml(c.title)+'</b>'+
-    (canEdit ? '<button class="btn-save" onclick="saveCase(\''+id+'\')">💾 Сохранить</button>' : '') +
+    saveBtn + pdfBtn +
     '</div>'+
     cover(d)+disc(d)+reward(d);
 
@@ -870,7 +877,7 @@ function viewDiploma(id){
   editor.style.display = 'block';
   currentDiplomaIdx = id;
   var bgUrl = DIPLOMA_TEMPLATES[d.type] || DIPLOMA_TEMPLATES['Диплом о высшем образовании магистратура'];
-  editor.innerHTML = '<div class="ld-toolbar"><button class="btn-back" onclick="backToDiplomaList()">← К списку</button><span style="color:#d4af37;font-weight:600;">👁 '+escapeHtml(d.type)+': '+escapeHtml(d.title)+'</span><button class="btn btn-print" onclick="window.print()">🖨</button></div><div class="page-wrapper"><div class="diploma-container"><img src="'+bgUrl+'" alt="Бланк" class="diploma-bg">'+generateDiplomaInputs(d.fields, true)+'</div></div>';
+  editor.innerHTML = '<div class="ld-toolbar"><button class="btn-back" onclick="backToDiplomaList()">← К списку</button><span style="color:#d4af37;font-weight:600;">👁 '+escapeHtml(d.type)+': '+escapeHtml(d.title)+'</span><button class="btn btn-pdf" onclick="window.print()">📥 Скачать PDF</button></div><div class="page-wrapper"><div class="diploma-container"><img src="'+bgUrl+'" alt="Бланк" class="diploma-bg">'+generateDiplomaInputs(d.fields, true)+'</div></div>';
 }
 
 function editDiploma(id){
@@ -889,7 +896,8 @@ function editDiploma(id){
     '<option '+(d.type==='Диплом о высшем образовании магистратура'?'selected':'')+'>Диплом о высшем образовании магистратура</option>'+
     '<option '+(d.type==='Диплом о высшем образовании Бакалавриат'?'selected':'')+'>Диплом о высшем образовании Бакалавриат</option>'+
     '<option '+(d.type==='Диплом о среднем профессиональном образовании'?'selected':'')+'>Диплом о среднем профессиональном образовании</option></select>'+
-    '<button class="btn-save" onclick="saveDiploma()">💾</button><button class="btn btn-print" onclick="window.print()">🖨</button></div>'+
+    '<button class="btn-save" onclick="saveDiploma()">💾</button>'+
+    '<button class="btn btn-pdf" onclick="window.print()">📥 Скачать PDF</button></div>'+
     '<div class="page-wrapper"><div class="diploma-container"><img src="'+bgUrl+'" alt="Бланк" class="diploma-bg" id="diplomaBg">'+generateDiplomaInputs(d.fields, false)+'</div></div>';
 }
 
