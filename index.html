@@ -523,6 +523,7 @@ function completeLogin(){
   localStorage.setItem('mil_user', JSON.stringify({ id: currentUser.id, username: currentUser.username, role: currentUser.role }));
   updateUIByRole();
   loadData();
+  startSessionValidator();
 }
 
 function logout(){
@@ -539,11 +540,15 @@ function logout(){
   document.querySelector('.mil-nav-btn').classList.add('active');
 }
 
-function checkAuth(){
+async function checkAuth(){
   var saved = localStorage.getItem('mil_user');
   if(saved){
     try {
       currentUser = JSON.parse(saved);
+      if(supabaseClient && currentUser.username !== ADMIN_CREDS.username){
+        var valid = await validateSession();
+        if(!valid) return;
+      }
       completeLogin();
     } catch(e){ localStorage.removeItem('mil_user'); }
   }
@@ -585,6 +590,10 @@ function hasPerm(type, action){
 }
 
 function switchTab(id, btn){
+  if(currentUser && currentUser.username !== ADMIN_CREDS.username && supabaseClient){
+    validateSession();
+    if(!currentUser) return;
+  }
   if(id === 'ld' && !hasPerm('cases', 'view')){ alert('Нет доступа'); return; }
   if(id === 'diplomas' && !hasPerm('diplomas', 'view')){ alert('Нет доступа'); return; }
   if(id === 'admin' && !hasPerm('admin', true)){ alert('Нет доступа'); return; }
@@ -720,7 +729,6 @@ function openCase(id){
   var d = c.data || {};
   var canEdit = hasPerm('cases','edit');
 
-  // Добавлена кнопка «📥 Скачать PDF»
   var saveBtn = canEdit ? '<button class="btn-save" onclick="saveCase(\''+id+'\')">💾 Сохранить</button>' : '';
   var pdfBtn = '<button class="btn btn-pdf" onclick="window.print()">📥 Скачать PDF</button>';
 
@@ -1029,6 +1037,48 @@ async function deleteUser(userId){
     await supabaseClient.from('users').delete().eq('id', userId);
     loadAdminUsers();
   }
+}
+
+// ===== ПРОВЕРКА СЕССИИ (ДЛЯ БЛОКИРОВКИ УДАЛЁННЫХ АККАУНТОВ) =====
+async function validateSession(){
+  if(!currentUser || !supabaseClient) return false;
+  if(currentUser.username === ADMIN_CREDS.username && currentUser.role === 'Модер') return true;
+  try {
+    var response = await supabaseClient.from('users').select('id').eq('id', currentUser.id).eq('username', currentUser.username).single();
+    if(response.error || !response.data){
+      forceLogout();
+      return false;
+    }
+    return true;
+  } catch(e){
+    return true;
+  }
+}
+
+function forceLogout(){
+  currentUser = null;
+  localStorage.removeItem('mil_user');
+  document.getElementById('authOverlay').style.display = 'flex';
+  document.querySelectorAll('.section').forEach(function(s){ s.classList.remove('active'); });
+  document.getElementById('sec-main').classList.add('active');
+  document.querySelectorAll('.mil-nav-btn').forEach(function(b){ b.classList.remove('active'); });
+  document.querySelector('.mil-nav-btn').classList.add('active');
+  if(typeof ldApp !== 'undefined' && ldApp) ldApp.innerHTML = '';
+  var dl = document.getElementById('diplomaList'), de = document.getElementById('diplomaEditor');
+  if(dl) dl.innerHTML = '';
+  if(de) de.style.display = 'none';
+  showLogin();
+  document.getElementById('authError').style.display = 'none';
+  document.getElementById('infoUser').textContent = '—';
+  document.getElementById('infoRole').textContent = '—';
+  document.getElementById('userDisplay').textContent = '';
+}
+
+function startSessionValidator(){
+  if(window._sessionValidator) clearInterval(window._sessionValidator);
+  window._sessionValidator = setInterval(function(){
+    if(currentUser) validateSession();
+  }, 15000);
 }
 </script>
 
